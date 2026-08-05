@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>수학 퀴즈</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Sans+Symbols+2&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans Symbols 2", sans-serif;
+    background: #f5f5f3; margin: 0; color: #222;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 0 0 10px; }
+  .sub { color: #777; font-size: 14px; margin-bottom: 20px; }
+  .crumb { font-size: 13px; color: #999; margin-bottom: 6px; }
+  .card { background: #fff; border: 1px solid #e5e5e2; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card-toggle-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .toggle-arrow { color: #999; font-size: 13px; }
+  input, select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 15px; margin-bottom: 10px; font-family: inherit;
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  label.fl { font-size: 13px; color: #666; display:block; margin-bottom:4px; }
+  button.primary {
+    background: #222; color: #fff; border: none; border-radius: 8px;
+    padding: 12px 20px; font-size: 15px; cursor: pointer; width: 100%;
+  }
+  button.primary:disabled { background: #ccc; cursor: not-allowed; }
+  button.secondary {
+    background: #fff; border: 1px solid #ddd; border-radius: 8px;
+    padding: 10px 16px; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px;
+  }
+  button.danger {
+    background: #fff; border: 1px solid #f0c4c4; color: #c23434; border-radius: 8px;
+    padding: 9px 14px; font-size: 13px; cursor: pointer; margin-top: 6px;
+  }
+  button.mini {
+    background: #fff; border: 1px solid #ddd; border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; cursor: pointer;
+  }
+  button.mini.danger-mini { border-color: #f0c4c4; color: #c23434; }
+  .row2 { display: flex; gap: 8px; }
+  .row2 > * { flex: 1; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab { padding: 8px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 13px; }
+  .tab.active { background: #222; color: #fff; border-color: #222; }
+  .list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border: 1px solid #e5e5e2; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
+  }
+  .list-item:hover { border-color: #999; }
+  .list-item .cnt { color: #999; font-size: 13px; }
+  .qnum { font-size: 13px; color: #999; margin-bottom: 6px; }
+  .qtext { font-size: 16px; line-height: 1.8; margin-bottom: 14px; }
+  .qimg { max-width: 100%; display: block; margin: 0 0 14px; border: 1px solid #eee; border-radius: 8px; }
+  .pimg { max-width: 100%; display: block; margin: 0 0 8px; border: 1px solid #eee; border-radius: 6px; }
+  .dimg { max-width: 100%; display: block; margin: 0 0 10px; border: 1px solid #eee; border-radius: 8px; }
+  .choice {
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+    border: 1px solid #e5e5e2; border-radius: 8px; margin-bottom: 8px; cursor: pointer;
+  }
+  .choice:hover { border-color: #999; }
+  .choice.selected { border-color: #222; background: #f0f0ee; font-weight: 600; }
+  .progress { font-size: 13px; color: #999; margin-bottom: 8px; }
+  .result-score { font-size: 40px; font-weight: 700; text-align: center; margin: 16px 0 4px; }
+  .result-sub { text-align: center; color: #777; margin-bottom: 20px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
+  th { color: #888; font-weight: 500; }
+  .correct { color: #0a7a3f; } .wrong { color: #c23434; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+  .stat { background: #f7f7f5; border-radius: 8px; padding: 12px; text-align: center; }
+  .stat .num { font-size: 22px; font-weight: 700; } .stat .lbl { font-size: 12px; color: #888; margin-top: 2px; }
+  .hint { font-size: 12px; color: #999; margin-bottom: 10px; line-height: 1.6; }
+  .empty { text-align: center; color: #999; padding: 40px 0; font-size: 14px; }
+  .err { color: #c23434; font-size: 13px; margin: -4px 0 10px; }
+  .ok { color: #0a7a3f; font-size: 13px; margin: -4px 0 10px; }
+  .count-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+  .count-btn {
+    padding: 14px 4px; border: 1px solid #ddd; border-radius: 8px; text-align: center;
+    cursor: pointer; font-size: 14px; background: #fff;
+  }
+  .count-btn.selected { border-color: #222; background: #222; color: #fff; font-weight: 600; }
+  input[type=file] { padding: 8px; }
+  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .preview-grid { grid-template-columns: 1fr; } }
+  .preview-item { border: 1px solid #e5e5e2; border-radius: 10px; padding: 14px; }
+  .preview-item .phead { display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; }
+  .preview-item .pnum { font-size: 12px; color: #999; }
+  .phead-btns { display: flex; gap: 6px; }
+  .preview-item .ptext { font-size: 14px; margin-bottom: 8px; line-height: 1.6; }
+  .preview-item .pchoice { font-size: 13px; padding: 4px 0; color: #555; }
+  .preview-item .pchoice.pcorrect { color: #0a7a3f; font-weight: 600; }
+  .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+  .edit-choice-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .edit-choice-row input[type=radio] { width: auto; margin: 0; }
+  .edit-choice-row input[type=text] { margin-bottom: 0; }
+  .resume-card { background: #fffaf0; border: 1px solid #f0dca0; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .name-link { color: #2255cc; cursor: pointer; text-decoration: underline; }
+  .name-link:hover { color: #1133aa; }
+  .stopwatch-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .stopwatch-time { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 64px; }
+  .sw-btn {
+    border-radius: 8px; border: 1px solid #ddd; background: #fff; padding: 8px 14px;
+    font-size: 13px; cursor: pointer;
+  }
+  .sw-btn.on { background: #222; color: #fff; border-color: #222; }
+  .dchoice { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 14px; }
+  .dchoice .d-answer-mark { background: #fff3a0; text-decoration: underline; text-decoration-color: #e0b400; text-decoration-thickness: 3px; padding: 1px 4px; border-radius: 4px; }
+  .dchoice .d-picked-mark { font-weight: 700; }
+  .dq-meta { font-size: 12px; color: #999; margin-bottom: 4px; }
+  button.secondary.dontknow-active { border-color: #c23434; color: #c23434; background: #fdf2f2; }
+  .qov-item { cursor: pointer; }
+  .qov-item:hover { border-color: #999; }
+  .qov-item.qov-current { border-color: #222; border-width: 2px; }
+  .qov-item .qov-status { font-size: 12px; color: #999; font-weight: 600; }
+  .qov-item.qov-answered .qov-status { color: #0a7a3f; }
+  .qov-item.qov-unknown .qov-status { color: #c23434; }
+  .pchoice.qov-picked { font-weight: 700; text-decoration: underline; text-decoration-color: #222; }
+  .scratchpad { margin-top: 10px; border: 1px solid #e5e5e2; border-radius: 10px; padding: 10px; background: #fafaf8; }
+  .scratch-tools { display: flex; gap: 8px; margin-bottom: 8px; }
+  .tool-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #ccc; background: #fff; font-size: 13px; cursor: pointer; }
+  .tool-btn.active { background: #222; color: #fff; border-color: #222; }
+  .scratch-colors { display: flex; gap: 8px; margin-bottom: 8px; }
+  .color-btn { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+  .color-btn.active { border-color: #666; box-shadow: 0 0 0 2px #fff inset; }
+  .scratch-canvas { width: 100%; height: 260px; border: 1px solid #ddd; border-radius: 8px; background: #fff; touch-action: none; display: block; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+  }
+  .modal-box {
+    background: #fff; border-radius: 14px; padding: 22px; width: 100%; max-width: 360px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .modal-message { font-size: 15px; line-height: 1.6; margin-bottom: 14px; white-space: pre-wrap; }
+  .modal-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 10px; }
+  .modal-btns { display: flex; gap: 8px; }
+  .modal-btns button { flex: 1; margin-top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="modalOverlay" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div id="modalMessage" class="modal-message"></div>
+    <input id="modalInput" class="modal-input" style="display:none;" />
+    <div id="modalErr" class="err" style="display:none;"></div>
+    <div class="modal-btns">
+      <button id="modalCancelBtn" class="secondary" style="margin-top:0;">취소</button>
+      <button id="modalOkBtn" class="primary">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BANK_KEY = 'quiz-bank-v3';
+const META_KEY = 'quiz-meta-v1';
+const RESULTS_PREFIX = 'result:';
+const PROGRESS_PREFIX = 'progress:';
+const STUDENT_AUTH_PREFIX = 'auth:';
+const STUDENT_NOTES_KEY = 'student-notes-v1';
+const TEACHER_AUTH_KEY = 'teacher-auth';
+const COUNT_OPTIONS = [5,10,15,20,30,50,100];
+
+const SEED_QUESTIONS = [
+  {id:1, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 + 2x + a - 1$의 그래프가 $x$축과 한 점에서 만나도록 하는 상수 $a$의 값은?", choices:["0","2","4","6","8"], answer:1},
+  {id:2, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = 2x^2 - 5x + k$의 그래프와 $x$축이 서로 다른 두 점에서 만나도록 하는 자연수 $k$의 개수는?", choices:["1","2","3","4","5"], answer:2},
+  {id:3, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 - 7x + k$의 그래프가 $x$축과 서로 다른 두 점에서 만나고, 그 두 점 사이의 거리가 $5$일 때, 실수 $k$의 값은?", choices:["-6","3","5","6","10"], answer:3},
+  {id:4, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 + ax - 8$의 그래프가 $x$축과 두 점 $A(-2,0)$, $B(b,0)$에서 만날 때, 실수 $a, b$에 대하여 $a+b$의 값은?", choices:["-4","-2","0","2","4"], answer:1},
+  {id:5, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 - 2ax + a + 3$의 그래프가 $x$축과 접할 때, 모든 상수 $a$의 값의 합은?", choices:["1","2","3","4","5"], answer:0},
+  {id:6, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = 3x^2 + x - t$의 그래프가 $x$축과 한 점에서 만날 때, 실수 $t$의 값은?", choices:["$-\\dfrac{1}{3}$","$-\\dfrac{1}{6}$","$-\\dfrac{1}{12}$","$\\dfrac{1}{12}$","$\\dfrac{1}{3}$"], answer:2},
+  {id:7, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 + ax + b$의 그래프가 $x$축과 두 점 $(2,0)$, $(4,0)$에서 만날 때, $a+b$의 값은? (단, $a, b$는 상수이다.)", choices:["2","4","6","8","10"], answer:0},
+  {id:8, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 + 6x + a$의 그래프가 $x$축과 만나지 않을 때, 상수 $a$의 값 또는 범위는?", choices:["$a=9$","$a\\ge 9$","$a>9$","$a\\le 9$","$a<9$"], answer:2},
+  {id:9, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 - 4x + a$의 그래프와 $x$축이 만나는 두 점 사이의 거리가 $10$일 때, 실수 $a$의 값은?", choices:["-21","-16","-9","16","21"], answer:0},
+  {id:10, subject:"수학", unit:"이차방정식과 이차함수", text:"이차함수 $y = x^2 + 4x + a - 2$의 그래프가 $x$축과 만날 때 실수 $a$의 값의 범위를 구하면?", choices:["$a\\le 6$","$a<6$","$a<18$","$a\\le 18$","$0\\le a\\le 6$"], answer:0}
+];
+
+let state = { view: 'login' };
+
+// ---------- 커스텀 모달 (샌드박스 환경에서 alert/confirm/prompt가 막혀 있어 자체 구현) ----------
+function showModal({ message, isPrompt=false, isPassword=false, okText='확인', cancelText='취소', showCancel=true }) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('modalOverlay');
+    const msgEl = document.getElementById('modalMessage');
+    const inputEl = document.getElementById('modalInput');
+    const errEl = document.getElementById('modalErr');
+    const okBtn = document.getElementById('modalOkBtn');
+    const cancelBtn = document.getElementById('modalCancelBtn');
+
+    msgEl.textContent = message;
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+    inputEl.style.display = isPrompt ? 'block' : 'none';
+    inputEl.type = isPassword ? 'password' : 'text';
+    inputEl.value = '';
+    okBtn.textContent = okText;
+    cancelBtn.style.display = showCancel ? 'block' : 'none';
+    cancelBtn.textContent = cancelText;
+    overlay.style.display = 'flex';
+    if (isPrompt) setTimeout(() => inputEl.focus(), 30);
+    else okBtn.focus();
+
+    function cleanup() {
+      overlay.style.display = 'none';
+      okBtn.onclick = null; cancelBtn.onclick = null; inputEl.onkeydown = null;
+    }
+    okBtn.onclick = () => {
+      cleanup();
+      resolve(isPrompt ? inputEl.value : true);
+    };
+    cancelBtn.onclick = () => {
+      cleanup();
+      resolve(isPrompt ? null : false);
+    };
+    if (isPrompt) {
+      inputEl.onkeydown = (e) => { if (e.key === 'Enter') okBtn.click(); };
+    }
+  });
+}
+function showAlert(message) {
+  return showModal({ message, showCancel: false });
+}
+function showConfirm(message) {
+  return showModal({ message, okText: '확인', cancelText: '취소' });
+}
+function showPrompt(message, isPassword=false) {
+  return showModal({ message, isPrompt: true, isPassword });
+}
+let swIntervalHandle = null;
+
+// ---------- 저장소 호출 도우미: 동시 요청 수 제한 + 일시적 오류 재시도 ----------
+// 배치가 많아진 상태에서 한 번에 수십~수백 개의 요청을 동시에 보내면
+// "Internal server error while processing action" 같은 일시적인 오류가 나기 쉽습니다.
+// 동시 실행 개수를 제한하고, 실패하면 짧게 기다렸다가 다시 시도합니다.
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let idx = 0;
+  async function worker() {
+    while (idx < items.length) {
+      const i = idx++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  const workerCount = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({ length: workerCount }, worker));
+  return results;
+}
+// 항목이 많을 때(예: 응시 기록 수백 건 복원) 소량씩(chunkSize개) 병렬로 처리하고,
+// 묶음 사이에 짧게 쉬어서 요청이 한꺼번에 몰리는 것을 막습니다.
+async function mapThrottled(items, chunkSize, delayMs, fn) {
+  const results = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(fn));
+    results.push(...chunkResults);
+    if (i + chunkSize < items.length) await new Promise(res => setTimeout(res, delayMs));
+  }
+  return results;
+}
+async function withRetry(fn, retries = 4, delayMs = 700) {
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    try { return await fn(); }
+    catch (e) {
+      lastErr = e;
+      if (i < retries) await new Promise(res => setTimeout(res, delayMs * Math.pow(2, i)));
+    }
+  }
+  throw lastErr;
+}
+
+// ---------- storage helpers ----------
+// 문제은행은 파일 업로드 배치 단위로 나눠서 저장합니다 (bank-batch:<해시>).
+// 한 저장소 키의 값은 5MB로 제한되어 있어서, 전체 문제은행을 통째로 한 키에 저장하면
+// 문제가 쌓일수록 용량 제한에 걸려 저장이 실패합니다. 배치별로 나누면 새로 업로드하는
+// 파일 하나의 크기만 문제가 되고, 기존에 쌓인 데이터 크기는 영향을 주지 않습니다.
+const BANK_BATCH_PREFIX = 'bank-batch:';
+
+function batchKeyHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
+  return (h >>> 0).toString(36);
+}
+function batchStorageKey(batchKey) { return BANK_BATCH_PREFIX + batchKeyHash(batchKey); }
+
+async function loadBank() {
+  try {
+    const list = await window.storage.list(BANK_BATCH_PREFIX, true);
+    if (list && list.keys && list.keys.length > 0) {
+      const results = await mapWithConcurrency(list.keys, 6, async k => {
+        try {
+          const r = await withRetry(() => window.storage.get(k, true));
+          return r ? JSON.parse(r.value) : null;
+        } catch(e) { console.error('배치 로딩 실패:', k, e); return null; }
+      });
+      let all = [];
+      results.forEach(batch => { if (batch && Array.isArray(batch.questions)) all = all.concat(batch.questions); });
+      return all;
+    }
+    // 예전 방식(단일 키)으로 저장된 데이터가 있으면 배치 단위로 자동 이전
+    try {
+      const legacy = await window.storage.get(BANK_KEY, true);
+      if (legacy) {
+        const legacyBank = JSON.parse(legacy.value);
+        if (Array.isArray(legacyBank) && legacyBank.length > 0) {
+          const ok = await saveBank(legacyBank);
+          if (ok) { try { await window.storage.delete(BANK_KEY, true); } catch(e2) {} }
+          return legacyBank;
+        }
+      }
+    } catch(e3) { /* 예전 키 없음 - 정상 */ }
+    return SEED_QUESTIONS;
+  } catch(e) {
+    console.error('loadBank 실패:', e);
+    return SEED_QUESTIONS;
+  }
+}
+function groupByBatch(qs) {
+  const groups = {};
+  qs.forEach(q => {
+    const bk = batchKeyOf(q);
+    if (!groups[bk]) groups[bk] = [];
+    groups[bk].push(q);
+  });
+  return groups;
+}
+// prevQs(수정 전 문제은행 배열)를 함께 넘기면, 실제로 내용이 바뀐 배치만 다시 저장하고
+// 나머지는 건드리지 않습니다. 문제가 많이 쌓인 상태에서 업로드/삭제 한 번 할 때마다
+// 전체 배치를 매번 다시 쓰던 예전 방식보다 훨씬 빠릅니다. 저장/삭제도 동시 요청 수를
+// 제한해서 처리하고(서버 과부하로 인한 일시적 오류 방지), 실패한 요청은 재시도합니다.
+// prevQs를 넘기지 않으면(예: 백업 복원처럼 저장소 상태를 신뢰할 수 없을 때) 저장소를
+// 직접 조회해서 안전하게 정리합니다.
+async function saveBank(qs, prevQs) {
+  try {
+    const groups = groupByBatch(qs);
+    const desiredKeys = Object.keys(groups);
+    const desiredStorageKeys = new Set(desiredKeys.map(bk => batchStorageKey(bk)));
+
+    let batchesToWrite = desiredKeys;
+    let keysToDelete = [];
+
+    if (Array.isArray(prevQs)) {
+      const prevGroups = groupByBatch(prevQs);
+      batchesToWrite = desiredKeys.filter(bk => {
+        const prevJson = prevGroups[bk] ? JSON.stringify(prevGroups[bk]) : null;
+        return prevJson !== JSON.stringify(groups[bk]);
+      });
+      keysToDelete = Object.keys(prevGroups)
+        .filter(bk => !groups[bk])
+        .map(bk => batchStorageKey(bk));
+    } else {
+      const existing = await window.storage.list(BANK_BATCH_PREFIX, true);
+      const existingKeys = (existing && existing.keys) ? existing.keys : [];
+      keysToDelete = existingKeys.filter(k => !desiredStorageKeys.has(k));
+    }
+
+    // 한 번에 여러 배치를 써야 할 때(백업 복원 등) 요청이 짧은 시간에 몰리면 저장소
+    // 쪽에서 오류가 나는 경우가 있어, 배치 하나씩 순서대로 간격을 두고 저장합니다.
+    // (배치 1개만 바뀐 일반적인 업로드/삭제/수정은 이 루프가 한 번만 돌아서 느려지지 않습니다.)
+    const writeResults = [];
+    for (const bk of batchesToWrite) {
+      try {
+        const r = await withRetry(() => window.storage.set(
+          batchStorageKey(bk), JSON.stringify({ batchKey: bk, questions: groups[bk] }), true
+        ));
+        writeResults.push({ bk, ok: !!r });
+      } catch(e) {
+        console.error('배치 저장 실패:', bk, e);
+        writeResults.push({ bk, ok: false, error: e });
+      }
+      if (batchesToWrite.length > 1) await new Promise(res => setTimeout(res, 350));
+    }
+    const failed = writeResults.filter(r => !r.ok);
+    if (failed.length) {
+      const labels = failed.map(f => {
+        const q0 = groups[f.bk] && groups[f.bk][0];
+        return q0 && q0.batchLabel ? q0.batchLabel : f.bk;
+      });
+      throw new Error(`다음 파일 저장에 실패했습니다: ${labels.join(', ')} (파일 하나의 용량이 너무 크거나, 일시적인 서버 오류일 수 있습니다. 잠시 후 다시 시도해보세요.)`);
+    }
+    for (const k of keysToDelete) {
+      await window.storage.delete(k, true).catch(()=>{});
+      if (keysToDelete.length > 1) await new Promise(res => setTimeout(res, 200));
+    }
+
+    return true;
+  } catch(e) {
+    console.error('saveBank 실패:', e);
+    await showAlert('문제은행 저장에 실패했습니다: ' + (e && e.message ? e.message : e));
+    return false;
+  }
+}
+
+async function loadMeta() {
+  try { const r = await window.storage.get(META_KEY, true); return r ? JSON.parse(r.value) : {}; }
+  catch(e) { return {}; }
+}
+async function saveMeta(m) {
+  try {
+    const r = await window.storage.set(META_KEY, JSON.stringify(m), true);
+    return !!r;
+  } catch(e) {
+    console.error('saveMeta 실패:', e);
+    await showAlert('단원 정보 저장에 실패했습니다: ' + (e && e.message ? e.message : e));
+    return false;
+  }
+}
+
+async function getStudentAuth(name) {
+  try { const r = await window.storage.get(STUDENT_AUTH_PREFIX + name, true); return r ? JSON.parse(r.value) : null; }
+  catch(e) { return null; }
+}
+async function setStudentAuth(name, pin) {
+  await window.storage.set(STUDENT_AUTH_PREFIX + name, JSON.stringify({pin}), true);
+}
+async function loadAllStudentAccounts() {
+  try {
+    const list = await window.storage.list(STUDENT_AUTH_PREFIX, true);
+    if (!list || !list.keys) return [];
+    return list.keys.map(k => k.slice(STUDENT_AUTH_PREFIX.length)).sort();
+  } catch(e) { return []; }
+}
+async function deleteStudentAccount(name) {
+  try {
+    await window.storage.delete(STUDENT_AUTH_PREFIX + name, true);
+    return true;
+  } catch(e) { return false; }
+}
+// ---- 학생 메모(학교/비고) - 선생님만 확인 가능 ----
+async function loadStudentNotes() {
+  try { const r = await window.storage.get(STUDENT_NOTES_KEY, true); return r ? JSON.parse(r.value) : {}; }
+  catch(e) { return {}; }
+}
+async function saveStudentNote(name, note) {
+  try {
+    const notes = await loadStudentNotes();
+    notes[name] = note;
+    const r = await window.storage.set(STUDENT_NOTES_KEY, JSON.stringify(notes), true);
+    return !!r;
+  } catch(e) {
+    console.error('saveStudentNote 실패:', e);
+    return false;
+  }
+}
+async function getTeacherAuth() {
+  try { const r = await window.storage.get(TEACHER_AUTH_KEY, true); return r ? JSON.parse(r.value) : null; }
+  catch(e) { return null; }
+}
+async function setTeacherAuth(pass) { await window.storage.set(TEACHER_AUTH_KEY, JSON.stringify({pass}), true); }
+async function checkTeacherPass(pass) { const a = await getTeacherAuth(); return a && a.pass === pass; }
+
+async function saveResult(name, record) {
+  const key = RESULTS_PREFIX + name + ':' + Date.now();
+  await window.storage.set(key, JSON.stringify(record), true);
+}
+async function loadAllResults() {
+  const list = await window.storage.list(RESULTS_PREFIX, true);
+  if (!list || !list.keys) return [];
+  const results = await mapWithConcurrency(list.keys, 6, async k => {
+    try { const r = await withRetry(() => window.storage.get(k, true)); return r ? JSON.parse(r.value) : null; }
+    catch(e) { return null; }
+  });
+  return results.filter(Boolean).sort((a,b)=>b.ts-a.ts);
+}
+
+// ---- 전체 데이터 백업(내보내기) / 복원(가져오기) ----
+// 코드를 고쳐서 새로 게시하면 저장소가 초기화되는 경우가 있어, 매번 과목·단원·학생 계정을
+// 다시 만들지 않도록 전체 데이터를 파일 하나로 내보내고, 새로 게시한 뒤 그 파일을 그대로
+// 불러와 복원할 수 있게 합니다.
+async function buildFullBackup() {
+  const [bank, meta, students, studentNotes, results, teacherAuth] = await Promise.all([
+    loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes(), loadAllResults(), getTeacherAuth()
+  ]);
+  const studentAuths = {};
+  const authResults = await mapWithConcurrency(students, 6, name => getStudentAuth(name).then(a => [name, a]));
+  authResults.forEach(([name, a]) => { if (a) studentAuths[name] = a.pin; });
+  return {
+    backupType: 'quiz-app-full-backup', version: 1, exportedAt: new Date().toISOString(),
+    bank, meta, studentAuths, studentNotes, results,
+    teacherPass: teacherAuth ? teacherAuth.pass : null
+  };
+}
+async function restoreFullBackup(data) {
+  const errors = [];
+  if (Array.isArray(data.bank)) {
+    const ok = await saveBank(data.bank);
+    if (!ok) errors.push('문제은행 복원 실패');
+  }
+  if (data.meta && typeof data.meta === 'object') {
+    const ok = await saveMeta(data.meta);
+    if (!ok) errors.push('과목/단원 정보 복원 실패');
+  }
+  if (data.studentAuths && typeof data.studentAuths === 'object') {
+    const results = await mapThrottled(Object.entries(data.studentAuths), 3, 300, ([name, pin]) =>
+      withRetry(() => setStudentAuth(name, pin)).then(()=>true).catch(()=>name)
+    );
+    results.filter(r => r !== true).forEach(name => errors.push(`학생 계정 복원 실패: ${name}`));
+  }
+  if (data.studentNotes && typeof data.studentNotes === 'object') {
+    try { await withRetry(() => window.storage.set(STUDENT_NOTES_KEY, JSON.stringify(data.studentNotes), true)); }
+    catch(e) { errors.push('학생 메모 복원 실패'); }
+  }
+  if (Array.isArray(data.results)) {
+    const results = await mapThrottled(data.results, 3, 300, r => {
+      const key = RESULTS_PREFIX + r.name + ':' + (r.ts || Date.now());
+      return withRetry(() => window.storage.set(key, JSON.stringify(r), true)).then(()=>true).catch(()=>false);
+    });
+    if (results.some(ok => !ok)) errors.push('일부 응시 기록 복원 실패');
+  }
+  if (data.teacherPass) {
+    try { await setTeacherAuth(data.teacherPass); } catch(e) { errors.push('선생님 비밀번호 복원 실패'); }
+  }
+  return errors;
+}
+
+async function saveProgress(name, data) {
+  await window.storage.set(PROGRESS_PREFIX + name, JSON.stringify({...data, savedAt: Date.now()}), true);
+}
+async function loadProgress(name) {
+  try { const r = await window.storage.get(PROGRESS_PREFIX + name, true); return r ? JSON.parse(r.value) : null; }
+  catch(e) { return null; }
+}
+async function clearProgress(name) {
+  try {
+    const r = await window.storage.get(PROGRESS_PREFIX + name, true);
+    if (r) await window.storage.delete(PROGRESS_PREFIX + name, true);
+  } catch(e) {}
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function renderMath() {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.getElementById('app'), { delimiters: [{left:'$', right:'$', display:false}] });
+  }
+}
+function groupCount(bank, keyFn) {
+  const m = {};
+  bank.forEach(q => { const k = keyFn(q); m[k] = (m[k]||0)+1; });
+  return m;
+}
+// meta.__subjectOrder = 과목 표시 순서, meta[과목명] = 해당 과목의 단원 표시 순서
+function getOrderedSubjects(bank, meta) {
+  const order = meta.__subjectOrder || [];
+  const fromBank = Object.keys(groupCount(bank, q => q.subject || '기타'));
+  const fromMeta = Object.keys(meta).filter(k => k !== '__subjectOrder');
+  const all = Array.from(new Set([...fromBank, ...fromMeta]));
+  const known = order.filter(s => all.includes(s));
+  const rest = all.filter(s => !known.includes(s));
+  return [...known, ...rest];
+}
+function getOrderedUnits(bank, meta, subject) {
+  const order = meta[subject] || [];
+  const fromBank = Object.keys(groupCount(bank.filter(q => (q.subject||'기타')===subject), q => q.unit || '기타'));
+  const all = Array.from(new Set([...fromBank, ...order]));
+  const known = order.filter(u => all.includes(u));
+  const rest = all.filter(u => !known.includes(u));
+  return [...known, ...rest];
+}
+function fmtDateTime(ts) {
+  if (!ts) return '-';
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function fmtDuration(sec) {
+  if (sec === null || sec === undefined) return '-';
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60), s = sec%60;
+  return m > 0 ? `${m}분 ${s}초` : `${s}초`;
+}
+function fmtClock(sec) {
+  const m = Math.floor(sec/60), s = sec%60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ---------- router ----------
+function render() {
+  if (state.view === 'login') renderLogin();
+  else if (state.view === 'subjects') renderSubjects();
+  else if (state.view === 'changePassword') renderChangePassword();
+  else if (state.view === 'units') renderUnits();
+  else if (state.view === 'setup') renderSetup();
+  else if (state.view === 'quiz') renderQuiz();
+  else if (state.view === 'quizOverview') renderQuizOverview();
+  else if (state.view === 'result') renderResult();
+  else if (state.view === 'myresults') renderMyResults();
+  else if (state.view === 'teacher-login') renderTeacherLogin();
+  else if (state.view === 'teacher') renderTeacher();
+  else if (state.view === 'studentDetail') renderStudentDetail();
+  renderMath();
+  manageStopwatch();
+}
+
+function manageStopwatch() {
+  if (swIntervalHandle) { clearInterval(swIntervalHandle); swIntervalHandle = null; }
+  if (state.view === 'quiz' && state.swRunning) {
+    swIntervalHandle = setInterval(() => {
+      state.swElapsed = (state.swElapsed || 0) + 1;
+      const disp = document.getElementById('swDisplay');
+      if (disp) disp.textContent = fmtClock(state.swElapsed);
+      else { clearInterval(swIntervalHandle); swIntervalHandle = null; }
+    }, 1000);
+  }
+}
+
+// ---------- student: login ----------
+function renderLogin() {
+  const el = document.getElementById('app');
+  el.innerHTML = `
+    <h1>수학 퀴즈</h1>
+    <div class="sub">선생님이 만들어준 이름과 비밀번호로 로그인하세요</div>
+    <div class="card">
+      <label class="fl">이름</label>
+      <input id="nameInput" placeholder="예: 김민준" />
+      <label class="fl">비밀번호</label>
+      <input id="pinInput" type="password" placeholder="비밀번호" />
+      <div class="err" id="loginErr" style="display:none;"></div>
+      <button class="primary" id="loginBtn">로그인</button>
+      <button class="secondary" id="teacherBtn">선생님으로 접속</button>
+    </div>
+  `;
+  document.getElementById('loginBtn').onclick = doLogin;
+  document.getElementById('teacherBtn').onclick = () => { state = { view: 'teacher-login' }; render(); };
+  el.querySelectorAll('input').forEach(i => i.onkeydown = e => { if (e.key==='Enter') doLogin(); });
+}
+
+async function doLogin() {
+  const name = document.getElementById('nameInput').value.trim();
+  const pin = document.getElementById('pinInput').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  if (!name || !pin) {
+    errEl.textContent = '이름과 비밀번호를 입력해주세요.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const auth = await getStudentAuth(name);
+  if (!auth) {
+    errEl.textContent = '등록되지 않은 계정입니다. 선생님께 계정 생성을 요청하세요.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (auth.pin !== pin) {
+    errEl.textContent = '비밀번호가 일치하지 않습니다.';
+    errEl.style.display = 'block';
+    return;
+  }
+  state = { view: 'subjects', name };
+  render();
+}
+
+// ---------- student: subject select ----------
+async function renderSubjects() {
+  const el = document.getElementById('app');
+  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
+  const [bank, progress, meta] = await Promise.all([loadBank(), loadProgress(state.name), loadMeta()]);
+  const subjects = groupCount(bank, q => q.subject || '기타');
+  const names = getOrderedSubjects(bank, meta).filter(s => subjects[s]);
+  el.innerHTML = `
+    <h1>${escapeHtml(state.name)}님, 안녕하세요</h1>
+    <div class="sub">과목을 선택하세요</div>
+    ${progress ? `
+      <div class="resume-card">
+        <div style="font-weight:600;margin-bottom:4px;">이어서 풀 문제가 있어요</div>
+        <div style="font-size:13px;color:#777;margin-bottom:10px;">
+          ${escapeHtml(progress.subject)} · ${escapeHtml(progress.unit)} · ${progress.current+1}/${progress.questions.length}번 문제까지 진행함
+        </div>
+        <div class="row2">
+          <button class="primary" id="resumeBtn" style="margin-top:0;">이어풀기</button>
+          <button class="secondary" id="discardBtn" style="margin-top:0;">새로 시작</button>
+        </div>
+      </div>` : ''}
+    ${names.length === 0 ? '<div class="empty">등록된 문제가 없습니다. 선생님께 문의하세요.</div>' :
+      names.map(s => `
+        <div class="list-item" data-subject="${escapeHtml(s)}">
+          <span>${escapeHtml(s)}</span><span class="cnt">${subjects[s]}문항</span>
+        </div>`).join('')}
+    <button class="secondary" id="myResultsBtn">내 기록 보기</button>
+    <button class="secondary" id="changePassBtn">비밀번호 변경</button>
+    <button class="secondary" id="logoutBtn">로그아웃</button>
+  `;
+  el.querySelectorAll('.list-item').forEach(item => {
+    item.onclick = () => { state = { view: 'units', name: state.name, subject: item.dataset.subject }; render(); };
+  });
+  document.getElementById('myResultsBtn').onclick = () => { state = { view: 'myresults', name: state.name }; render(); };
+  document.getElementById('changePassBtn').onclick = () => { state.view = 'changePassword'; render(); };
+  document.getElementById('logoutBtn').onclick = () => { state = { view: 'login' }; render(); };
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (resumeBtn) resumeBtn.onclick = () => {
+    state = {
+      view: 'quiz', name: state.name, subject: progress.subject, unit: progress.unit,
+      questions: progress.questions, current: progress.current, picks: progress.picks,
+      qStart: progress.qStart || {}, qAnsweredAt: progress.qAnsweredAt || {},
+      swElapsed: progress.swElapsed || 0, swRunning: false
+    };
+    render();
+  };
+  const discardBtn = document.getElementById('discardBtn');
+  if (discardBtn) discardBtn.onclick = async () => { await clearProgress(state.name); renderSubjects(); };
+}
+
+// ---------- student: 비밀번호 변경 ----------
+async function renderChangePassword() {
+  const el = document.getElementById('app');
+  el.innerHTML = `
+    <div class="crumb">${escapeHtml(state.name)}님</div>
+    <h1>비밀번호 변경</h1>
+    <div class="card">
+      <label class="fl">현재 비밀번호</label>
+      <input id="curPassInput" type="password" placeholder="현재 비밀번호" />
+      <label class="fl">새 비밀번호</label>
+      <input id="newPassInput" type="password" placeholder="새 비밀번호 (2자 이상)" />
+      <label class="fl">새 비밀번호 확인</label>
+      <input id="newPassInput2" type="password" placeholder="새 비밀번호 다시 입력" />
+      <div class="err" id="cpErr" style="display:none;"></div>
+      <div class="ok" id="cpOk" style="display:none;"></div>
+      <button class="primary" id="cpSaveBtn" type="button">변경하기</button>
+      <button class="secondary" id="cpCancelBtn" type="button">취소</button>
+    </div>
+  `;
+  el.querySelectorAll('input').forEach(i => i.onkeydown = e => { if (e.key==='Enter') document.getElementById('cpSaveBtn').click(); });
+  document.getElementById('cpCancelBtn').onclick = () => { state.view = 'subjects'; render(); };
+  document.getElementById('cpSaveBtn').onclick = async () => {
+    const cur = document.getElementById('curPassInput').value;
+    const next = document.getElementById('newPassInput').value;
+    const next2 = document.getElementById('newPassInput2').value;
+    const errEl = document.getElementById('cpErr');
+    const okEl = document.getElementById('cpOk');
+    errEl.style.display = 'none'; okEl.style.display = 'none';
+    if (!cur || !next || !next2) { errEl.textContent = '모든 칸을 입력해주세요.'; errEl.style.display='block'; return; }
+    const auth = await getStudentAuth(state.name);
+    if (!auth || auth.pin !== cur) { errEl.textContent = '현재 비밀번호가 일치하지 않습니다.'; errEl.style.display='block'; return; }
+    if (next.length < 2) { errEl.textContent = '새 비밀번호는 2자 이상 입력해주세요.'; errEl.style.display='block'; return; }
+    if (next !== next2) { errEl.textContent = '새 비밀번호가 서로 일치하지 않습니다.'; errEl.style.display='block'; return; }
+    if (next === cur) { errEl.textContent = '현재 비밀번호와 다른 비밀번호를 입력해주세요.'; errEl.style.display='block'; return; }
+    await setStudentAuth(state.name, next);
+    okEl.textContent = '비밀번호가 변경되었습니다.';
+    okEl.style.display = 'block';
+    setTimeout(() => { state.view = 'subjects'; render(); }, 900);
+  };
+}
+
+// ---------- student: unit select ----------
+async function renderUnits() {
+  const el = document.getElementById('app');
+  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
+  const bank = await loadBank();
+  const meta = await loadMeta();
+  const pool = bank.filter(q => (q.subject||'기타') === state.subject);
+  const units = groupCount(pool, q => q.unit || '기타');
+  const names = getOrderedUnits(bank, meta, state.subject).filter(u => units[u]);
+  el.innerHTML = `
+    <div class="crumb">${escapeHtml(state.subject)}</div>
+    <h1>단원 선택</h1>
+    <div class="sub">풀고 싶은 단원을 선택하세요</div>
+    ${names.map(u => `
+      <div class="list-item" data-unit="${escapeHtml(u)}">
+        <span>${escapeHtml(u)}</span><span class="cnt">${units[u]}문항</span>
+      </div>`).join('')}
+    <button class="secondary" id="backBtn">과목 다시 선택</button>
+  `;
+  el.querySelectorAll('.list-item').forEach(item => {
+    item.onclick = () => {
+      state = { view: 'setup', name: state.name, subject: state.subject, unit: item.dataset.unit, unitTotal: units[item.dataset.unit] };
+      render();
+    };
+  });
+  document.getElementById('backBtn').onclick = () => { state = { view: 'subjects', name: state.name }; render(); };
+}
+
+// ---------- student: count select ----------
+function renderSetup() {
+  const el = document.getElementById('app');
+  const max = state.unitTotal;
+  const options = COUNT_OPTIONS.filter(n => n <= max);
+  const defaultCount = options.length ? options[0] : max;
+  state.selectedCount = state.selectedCount || defaultCount;
+  el.innerHTML = `
+    <div class="crumb">${escapeHtml(state.subject)} · ${escapeHtml(state.unit)}</div>
+    <h1>문제 수 선택</h1>
+    <div class="sub">몇 문제를 풀지 선택하세요 (전체 ${max}문항)</div>
+    <div class="card">
+      <div class="count-grid">
+        ${options.map(n => `<div class="count-btn ${state.selectedCount===n?'selected':''}" data-n="${n}">${n}</div>`).join('')}
+        <div class="count-btn ${state.selectedCount==='max'?'selected':''}" data-n="max">전체(${max})</div>
+      </div>
+      <button class="primary" id="beginBtn">퀴즈 시작</button>
+      <button class="secondary" id="backBtn">단원 다시 선택</button>
+    </div>
+  `;
+  el.querySelectorAll('.count-btn').forEach(btn => {
+    btn.onclick = () => {
+      const n = btn.dataset.n;
+      state.selectedCount = n === 'max' ? 'max' : parseInt(n);
+      renderSetup();
+    };
+  });
+  document.getElementById('beginBtn').onclick = async () => {
+    const count = state.selectedCount === 'max' ? max : state.selectedCount;
+    const bank = await loadBank();
+    const pool = bank.filter(q => (q.subject||'기타') === state.subject && (q.unit||'기타') === state.unit);
+    state = {
+      view: 'quiz', name: state.name, subject: state.subject, unit: state.unit,
+      questions: shuffle(pool).slice(0, count), current: 0, picks: {},
+      qStart: {}, qAnsweredAt: {}, swElapsed: 0, swRunning: false
+    };
+    render();
+  };
+  document.getElementById('backBtn').onclick = () => { state = { view: 'units', name: state.name, subject: state.subject }; render(); };
+}
+
+// ---------- student: quiz ----------
+// ---------- student: 필기장(스크래치 캔버스) - 펜/지우개, 문제별로 그림 유지 ----------
+function setupScratchCanvas(qid, imageUrl) {
+  const canvas = document.getElementById('scratchCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = canvas.clientWidth || 300;
+  const cssHeight = 260;
+  canvas.width = Math.round(cssWidth * dpr);
+  canvas.height = Math.round(cssHeight * dpr);
+  canvas.style.height = cssHeight + 'px';
+  ctx.scale(dpr, dpr);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const saved = state.notes && state.notes[qid];
+  if (saved) {
+    const img = new Image();
+    img.onload = () => { ctx.drawImage(img, 0, 0, cssWidth, cssHeight); };
+    img.src = saved;
+  }
+
+  let drawing = false;
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+  function applyToolStyle() {
+    if ((state.scratchTool||'pen') === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 22;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = state.scratchColor || '#222';
+      ctx.lineWidth = 2.5;
+    }
+  }
+  function saveSnapshot() {
+    if (!state.notes) state.notes = {};
+    state.notes[qid] = canvas.toDataURL('image/png');
+  }
+  canvas.onpointerdown = (e) => {
+    drawing = true;
+    applyToolStyle();
+    const p = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+  };
+  canvas.onpointermove = (e) => {
+    if (!drawing) return;
+    const p = getPos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  };
+  function endStroke() {
+    if (!drawing) return;
+    drawing = false;
+    saveSnapshot();
+  }
+  canvas.onpointerup = endStroke;
+  canvas.onpointercancel = endStroke;
+  canvas.onpointerleave = endStroke;
+
+  const penBtn = document.getElementById('toolPenBtn');
+  const eraserBtn = document.getElementById('toolEraserBtn');
+  penBtn.onclick = () => { state.scratchTool = 'pen'; penBtn.classList.add('active'); eraserBtn.classList.remove('active'); };
+  eraserBtn.onclick = () => { state.scratchTool = 'eraser'; eraserBtn.classList.add('active'); penBtn.classList.remove('active'); };
+  document.getElementById('toolClearBtn').onclick = () => {
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    saveSnapshot();
+  };
+  document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.onclick = () => {
+      state.scratchColor = btn.dataset.color;
+      state.scratchTool = 'pen';
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      penBtn.classList.add('active');
+      eraserBtn.classList.remove('active');
+    };
+  });
+  const loadGraphBtn = document.getElementById('loadGraphBtn');
+  if (loadGraphBtn) {
+    loadGraphBtn.onclick = async () => {
+      const hasContent = !!(state.notes && state.notes[qid]);
+      if (hasContent) {
+        const ok = await showConfirm('필기장에 그래프를 불러오면 기존에 그린 내용 위에 그래프가 덮어씌워집니다. 계속할까요?');
+        if (!ok) return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, cssWidth, cssHeight);
+        const scale = Math.min(cssWidth / img.width, cssHeight / img.height, 1);
+        const w = img.width * scale, h = img.height * scale;
+        const x = (cssWidth - w) / 2, y = (cssHeight - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
+        saveSnapshot();
+      };
+      img.src = imageUrl;
+    };
+  }
+}
+
+function renderQuiz() {
+  const el = document.getElementById('app');
+  const q = state.questions[state.current];
+  const total = state.questions.length;
+  const picked = state.picks[q.id];
+  if (!state.qStart[q.id]) state.qStart[q.id] = Date.now();
+
+  el.innerHTML = `
+    <div class="progress">${escapeHtml(state.name)}님 · ${escapeHtml(state.subject)} · ${escapeHtml(state.unit)} · 문제 ${state.current+1} / ${total}</div>
+    <div class="card">
+      <div class="stopwatch-row">
+        <span class="stopwatch-time" id="swDisplay">${fmtClock(state.swElapsed||0)}</span>
+        <button class="sw-btn ${state.swRunning?'on':''}" id="swToggleBtn" type="button">${state.swRunning?'스톱워치 정지':'스톱워치 시작'}</button>
+      </div>
+      <div class="qnum">Q${state.current+1}${picked==='unknown'?' · <span style="color:#c23434;">모르겠음으로 표시함</span>':''}</div>
+      <div class="qtext">${escapeHtml(q.text)}</div>
+      ${q.image ? `<img class="qimg" src="${q.image}" alt="문제 그림" />` : ''}
+      ${q.choices.map((c,i)=>`
+        <div class="choice ${picked===i?'selected':''}" data-i="${i}">
+          <span>${['①','②','③','④','⑤'][i]||(i+1)}</span><span>${escapeHtml(c)}</span>
+        </div>`).join('')}
+      <button class="secondary ${picked==='unknown'?'dontknow-active':''}" id="dontKnowBtn" type="button" style="margin-top:4px;">모르겠음</button>
+      <button class="secondary" id="scratchToggleBtn" type="button" style="margin-top:8px;">${state.notesOpen ? '필기장 닫기' : '✏️ 필기장 열기'}</button>
+      ${state.notesOpen ? `
+      <div class="scratchpad">
+        <div class="scratch-tools">
+          <button class="tool-btn ${(state.scratchTool||'pen')==='pen'?'active':''}" id="toolPenBtn" type="button">펜</button>
+          <button class="tool-btn ${state.scratchTool==='eraser'?'active':''}" id="toolEraserBtn" type="button">지우개</button>
+          <button class="tool-btn" id="toolClearBtn" type="button">전체 지우기</button>
+          ${q.image ? `<button class="tool-btn" id="loadGraphBtn" type="button">그래프 불러오기</button>` : ''}
+        </div>
+        <div class="scratch-colors">
+          <button class="color-btn ${(state.scratchColor||'#222')==='#222'?'active':''}" id="colorBlackBtn" data-color="#222" style="background:#222;" type="button" aria-label="검정"></button>
+          <button class="color-btn ${state.scratchColor==='#e03131'?'active':''}" id="colorRedBtn" data-color="#e03131" style="background:#e03131;" type="button" aria-label="빨강"></button>
+          <button class="color-btn ${state.scratchColor==='#1971c2'?'active':''}" id="colorBlueBtn" data-color="#1971c2" style="background:#1971c2;" type="button" aria-label="파랑"></button>
+          <button class="color-btn ${state.scratchColor==='#2f9e44'?'active':''}" id="colorGreenBtn" data-color="#2f9e44" style="background:#2f9e44;" type="button" aria-label="초록"></button>
+        </div>
+        <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+      </div>` : ''}
+    </div>
+    <div class="row2">
+      <button class="secondary" id="prevBtn" ${state.current===0?'disabled':''}>이전 문제</button>
+      <button class="primary" id="nextBtn" style="margin-top:0;">
+        ${state.current+1===total ? '제출하기' : '다음 문제'}
+      </button>
+    </div>
+    <button class="secondary" id="navBtn">전체 문제 보기</button>
+    <button class="secondary" id="saveExitBtn">저장하고 나가기</button>
+    <div class="ok" id="saveMsg" style="display:none;text-align:center;"></div>
+  `;
+  el.querySelectorAll('.choice').forEach(c => {
+    c.onclick = () => {
+      state.picks[q.id] = parseInt(c.dataset.i);
+      state.qAnsweredAt[q.id] = Date.now();
+      render();
+    };
+  });
+  document.getElementById('swToggleBtn').onclick = () => {
+    state.swRunning = !state.swRunning;
+    render();
+  };
+  const prevBtn = document.getElementById('prevBtn');
+  if (prevBtn) prevBtn.onclick = () => {
+    if (state.current > 0) { state.current--; render(); }
+  };
+  document.getElementById('dontKnowBtn').onclick = () => {
+    state.picks[q.id] = 'unknown';
+    state.qAnsweredAt[q.id] = Date.now();
+    if (state.current + 1 < total) { state.current++; render(); }
+    else finishQuiz();
+  };
+  document.getElementById('scratchToggleBtn').onclick = () => {
+    state.notesOpen = !state.notesOpen;
+    render();
+  };
+  if (state.notesOpen) setupScratchCanvas(q.id, q.image);
+  document.getElementById('navBtn').onclick = () => {
+    state.view = 'quizOverview';
+    render();
+  };
+  document.getElementById('nextBtn').onclick = () => {
+    if (state.current + 1 < total) { state.current++; render(); }
+    else finishQuiz();
+  };
+  document.getElementById('saveExitBtn').onclick = async () => {
+    await saveProgress(state.name, {
+      subject: state.subject, unit: state.unit,
+      questions: state.questions, current: state.current, picks: state.picks,
+      qStart: state.qStart, qAnsweredAt: state.qAnsweredAt, swElapsed: state.swElapsed||0
+    });
+    const msg = document.getElementById('saveMsg');
+    msg.textContent = '저장되었습니다. 잠시 후 이동합니다...';
+    msg.style.display = 'block';
+    setTimeout(() => { state = { view: 'subjects', name: state.name }; render(); }, 700);
+  };
+}
+
+// ---------- student: 전체 문제 보기 (2열 그리드, 문제 내용 포함, 클릭 시 해당 문제로 이동) ----------
+function renderQuizOverview() {
+  const el = document.getElementById('app');
+  const total = state.questions.length;
+  el.innerHTML = `
+    <div class="progress">${escapeHtml(state.name)}님 · ${escapeHtml(state.subject)} · ${escapeHtml(state.unit)} · 전체 문제 보기</div>
+    <div class="hint">문제를 누르면 그 문제로 바로 이동합니다.</div>
+    <div class="preview-grid">
+      ${state.questions.map((q,i) => {
+        const picked = state.picks[q.id];
+        let statusLabel, statusClass;
+        if (picked === 'unknown') { statusLabel = '모르겠음'; statusClass = 'qov-unknown'; }
+        else if (picked !== undefined) { statusLabel = '답함'; statusClass = 'qov-answered'; }
+        else { statusLabel = '안 풀음'; statusClass = 'qov-blank'; }
+        return `
+        <div class="preview-item qov-item ${statusClass} ${i===state.current?'qov-current':''}" data-idx="${i}">
+          <div class="phead">
+            <span class="pnum">Q${i+1}</span>
+            <span class="qov-status">${statusLabel}</span>
+          </div>
+          <div class="ptext">${escapeHtml(q.text)}</div>
+          ${q.image ? `<img class="pimg" src="${q.image}" alt="문제 그림" />` : ''}
+          ${(q.choices||[]).map((c,ci)=>`
+            <div class="pchoice ${picked===ci?'qov-picked':''}">${['①','②','③','④','⑤'][ci]||(ci+1)} ${escapeHtml(c)}</div>
+          `).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="secondary" id="backToQuizBtn">돌아가기</button>
+  `;
+  el.querySelectorAll('.qov-item').forEach(item => {
+    item.onclick = () => {
+      state.current = parseInt(item.dataset.idx);
+      state.view = 'quiz';
+      render();
+    };
+  });
+  document.getElementById('backToQuizBtn').onclick = () => {
+    state.view = 'quiz';
+    render();
+  };
+}
+
+async function finishQuiz() {
+  let correctCount = 0;
+  const starts = Object.values(state.qStart).filter(Boolean);
+  const startedAt = starts.length ? Math.min(...starts) : Date.now();
+  const detail = state.questions.map(q => {
+    const picked = state.picks[q.id];
+    const isCorrect = picked === q.answer;
+    if (isCorrect) correctCount++;
+    const qStart = state.qStart[q.id] || null;
+    const answeredAt = state.qAnsweredAt[q.id] || null;
+    const durationSec = (qStart && answeredAt) ? Math.round((answeredAt - qStart)/1000) : null;
+    return {
+      id: q.id, text: q.text, choices: q.choices, image: q.image || null,
+      picked, answer: q.answer, correct: isCorrect,
+      answeredAt, durationSec
+    };
+  });
+  const record = {
+    name: state.name, subject: state.subject, unit: state.unit, ts: Date.now(), startedAt,
+    date: new Date().toISOString().slice(0,10), total: state.questions.length, correct: correctCount, detail
+  };
+  await saveResult(state.name, record);
+  await clearProgress(state.name);
+  state = { view: 'result', name: state.name, subject: state.subject, record };
+  render();
+}
+
+function renderResult() {
+  const el = document.getElementById('app');
+  const r = state.record;
+  const pct = Math.round((r.correct / r.total) * 100);
+  const wrongCount = r.total - r.correct;
+  el.innerHTML = `
+    <div class="card">
+      <div class="result-score">${r.correct} / ${r.total}</div>
+      <div class="result-sub">${escapeHtml(r.subject)} · ${escapeHtml(r.unit)} · 정답률 ${pct}%</div>
+      <table>
+        <tr><th>문제</th><th>내 답</th><th>정답</th><th>결과</th></tr>
+        ${r.detail.map((d,i)=>`
+          <tr>
+            <td>Q${i+1}</td>
+            <td>${d.picked==='unknown' ? '모르겠음' : (d.picked!==undefined && d.picked!==null ? (['①','②','③','④','⑤'][d.picked]||'-') : '-')}</td>
+            <td>${['①','②','③','④','⑤'][d.answer]}</td>
+            <td class="${d.correct?'correct':'wrong'}">${d.correct?'정답':'오답'}</td>
+          </tr>`).join('')}
+      </table>
+    </div>
+    ${wrongCount > 0 ? `<button class="primary" id="retryWrongBtn">틀린 문제 다시 풀어보기 (${wrongCount}개)</button>` : ''}
+    <button class="secondary" id="homeBtn">단원 선택으로</button>
+  `;
+  const retryWrongBtn = document.getElementById('retryWrongBtn');
+  if (retryWrongBtn) retryWrongBtn.onclick = () => {
+    const wrongQuestions = r.detail.filter(d => !d.correct).map(d => ({
+      id: d.id, text: d.text, choices: d.choices, image: d.image || null, answer: d.answer
+    }));
+    state = {
+      view: 'quiz', name: state.name, subject: r.subject, unit: r.unit,
+      questions: wrongQuestions, current: 0, picks: {}, qStart: {}, qAnsweredAt: {}, swElapsed: 0, swRunning: false
+    };
+    render();
+  };
+  document.getElementById('homeBtn').onclick = () => { state = { view: 'units', name: state.name, subject: state.subject }; render(); };
+}
+
+async function renderMyResults() {
+  const el = document.getElementById('app');
+  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
+  const all = await loadAllResults();
+  const mine = all.filter(r => r.name === state.name);
+  el.innerHTML = `
+    <h1>내 기록</h1>
+    <div class="sub">${escapeHtml(state.name)}님만 볼 수 있는 결과입니다</div>
+    <div class="card">
+      ${mine.length === 0 ? '<div class="empty">아직 응시 기록이 없습니다</div>' : `
+      <table>
+        <tr><th>날짜</th><th>과목</th><th>단원</th><th>점수</th><th>정답률</th></tr>
+        ${mine.map(r=>`
+          <tr>
+            <td>${r.date}</td>
+            <td>${escapeHtml(r.subject||'-')}</td>
+            <td>${escapeHtml(r.unit||'-')}</td>
+            <td>${r.correct}/${r.total}</td>
+            <td>${Math.round(r.correct/r.total*100)}%</td>
+          </tr>`).join('')}
+      </table>`}
+    </div>
+    <button class="secondary" id="backBtn">과목 선택으로</button>
+  `;
+  document.getElementById('backBtn').onclick = () => { state = { view: 'subjects', name: state.name }; render(); };
+}
+
+// ---------- teacher ----------
+function renderTeacherLogin() {
+  const el = document.getElementById('app');
+  el.innerHTML = `
+    <h1>선생님 로그인</h1>
+    <div class="sub">비밀번호를 입력하세요 (처음이라면 새로 설정됩니다)</div>
+    <div class="card">
+      <input id="passInput" type="password" placeholder="비밀번호" />
+      <div class="err" id="teacherErr" style="display:none;"></div>
+      <button class="primary" id="teacherLoginBtn">입장</button>
+      <button class="secondary" id="backToLoginBtn">학생 로그인으로</button>
+    </div>
+  `;
+  document.getElementById('teacherLoginBtn').onclick = async () => {
+    const pass = document.getElementById('passInput').value;
+    const errEl = document.getElementById('teacherErr');
+    if (!pass) { errEl.textContent = '비밀번호를 입력해주세요.'; errEl.style.display='block'; return; }
+    const auth = await getTeacherAuth();
+    if (!auth) { await setTeacherAuth(pass); }
+    else if (auth.pass !== pass) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; errEl.style.display='block'; return; }
+    state = { view: 'teacher' };
+    render();
+  };
+  document.getElementById('backToLoginBtn').onclick = () => { state = { view: 'login' }; render(); };
+  document.getElementById('passInput').onkeydown = e => { if (e.key==='Enter') document.getElementById('teacherLoginBtn').click(); };
+}
+
+async function renderTeacher() {
+  const el = document.getElementById('app');
+  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
+  const [results, bank, meta, students, studentNotes] = await Promise.all([loadAllResults(), loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes()]);
+
+  const studentCount = new Set(results.map(r=>r.name)).size;
+  const totalAttempts = results.length;
+  const avgPct = totalAttempts ? Math.round(results.reduce((s,r)=>s+r.correct/r.total,0)/totalAttempts*100) : 0;
+
+  const subjectCountsFromBank = groupCount(bank, q => q.subject || '기타');
+  const subjectNames = getOrderedSubjects(bank, meta);
+  const uploadSubject = state.uploadSubject || (subjectNames[0] || '');
+
+  const unitCountsFromBank = groupCount(bank.filter(q=>(q.subject||'기타')===uploadSubject), q => q.unit || '기타');
+  const unitNames = getOrderedUnits(bank, meta, uploadSubject);
+  const uploadUnit = (state.uploadUnit && unitNames.includes(state.uploadUnit)) ? state.uploadUnit : (unitNames[0] || '');
+
+  const viewSubject = state.viewSubject || uploadSubject;
+  const viewUnitCounts = groupCount(bank.filter(q=>(q.subject||'기타')===viewSubject), q => q.unit || '기타');
+  const viewUnitNames = getOrderedUnits(bank, meta, viewSubject).filter(u => viewUnitCounts[u]);
+  const viewUnit = (state.viewUnit && viewUnitNames.includes(state.viewUnit)) ? state.viewUnit : (viewUnitNames[0] || '');
+  const previewList = bank.filter(q => (q.subject||'기타')===viewSubject && (!viewUnit || (q.unit||'기타')===viewUnit));
+
+  // ---- 과목/단원 순서 관리 ----
+  const orderSubject = (state.orderSubject && subjectNames.includes(state.orderSubject)) ? state.orderSubject : (subjectNames[0] || '');
+  const orderUnitNames = orderSubject ? getOrderedUnits(bank, meta, orderSubject) : [];
+
+  // ---- 결과 탭/검색 ----
+  const resultsTab = state.resultsTab || 'all';
+  const resultSubjects = Array.from(new Set(results.map(r=>r.subject||'기타')));
+  const filterSubject = state.filterSubject || '';
+  const resultUnits = filterSubject ? Array.from(new Set(results.filter(r=>(r.subject||'기타')===filterSubject).map(r=>r.unit||'기타'))) : [];
+  const filterUnit = state.filterUnit || '';
+  let filteredResults = results;
+  if (resultsTab === 'search') {
+    filteredResults = results.filter(r =>
+      (!filterSubject || (r.subject||'기타')===filterSubject) &&
+      (!filterUnit || (r.unit||'기타')===filterUnit)
+    );
+  }
+
+  el.innerHTML = `
+    <h1>선생님 대시보드</h1>
+    <div class="stat-grid">
+      <div class="stat"><div class="num">${studentCount}</div><div class="lbl">참여 학생</div></div>
+      <div class="stat"><div class="num">${totalAttempts}</div><div class="lbl">총 응시 횟수</div></div>
+      <div class="stat"><div class="num">${avgPct}%</div><div class="lbl">평균 정답률</div></div>
+    </div>
+
+    <div class="card">
+      <h2>전체 데이터 백업 · 복원</h2>
+      <div class="hint">코드를 수정하고 새로 게시하면 저장된 데이터가 초기화될 수 있습니다. 게시 전에 여기서 백업 파일을 내려받고, 새로 게시한 뒤 그 파일을 불러오면 과목·단원·문제·학생 계정·응시 기록을 한 번에 복원할 수 있어요.</div>
+      <button class="secondary" id="backupDownloadBtn" type="button">백업 파일 다운로드</button>
+      <hr class="divider">
+      <label class="fl">백업 파일 불러와서 복원하기</label>
+      <input type="file" id="backupFileInput" accept="application/json" />
+      <button class="primary" id="backupRestoreBtn" type="button">복원하기</button>
+      <div class="err" id="backupErr" style="display:none;"></div>
+      <div class="ok" id="backupOk" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>학생 계정 관리</h2>
+      <div class="hint">여기서 만든 이름·비밀번호로만 학생이 로그인할 수 있습니다 (학생이 직접 새 계정을 만들 수 없음). 학교·비고는 선생님만 볼 수 있는 메모입니다.</div>
+      <label class="fl">새 계정 추가</label>
+      <div class="row2">
+        <input id="newStudentName" placeholder="이름" />
+        <input id="newStudentPass" type="password" placeholder="비밀번호" />
+      </div>
+      <button class="secondary" id="addStudentBtn">계정 추가</button>
+      <div class="err" id="studentErr" style="display:none;"></div>
+      <hr class="divider">
+      ${students.length === 0 ? '<div class="empty">등록된 학생 계정이 없습니다</div>' : `
+      <table>
+        <tr><th>이름</th><th>학교</th><th>비고</th><th style="width:110px;"></th></tr>
+        ${students.map(name => {
+          const note = studentNotes[name] || {};
+          if (state.editingStudentNote === name) {
+            return `
+              <tr>
+                <td colspan="4">
+                  <div style="font-weight:600;margin-bottom:6px;">${escapeHtml(name)}</div>
+                  <label class="fl">새 비밀번호 (변경할 때만 입력)</label>
+                  <input id="notePassInput" type="password" placeholder="비워두면 비밀번호는 그대로 유지됩니다" />
+                  <label class="fl">학교</label>
+                  <input id="noteSchoolInput" value="${escapeHtml(note.school||'')}" placeholder="예: OO중학교" />
+                  <label class="fl">비고</label>
+                  <textarea id="noteMemoInput" placeholder="선생님만 볼 수 있는 메모">${escapeHtml(note.memo||'')}</textarea>
+                  <div class="err" id="noteErr" style="display:none;"></div>
+                  <div class="row2">
+                    <button class="primary" id="noteSaveBtn" style="margin-top:0;" type="button">저장</button>
+                    <button class="secondary" id="noteCancelBtn" style="margin-top:0;" type="button">취소</button>
+                  </div>
+                </td>
+              </tr>`;
+          }
+          return `
+          <tr>
+            <td>${escapeHtml(name)}</td>
+            <td>${escapeHtml(note.school||'-')}</td>
+            <td>${escapeHtml(note.memo||'-')}</td>
+            <td>
+              <button class="mini student-edit-btn" data-name="${escapeHtml(name)}" type="button">수정</button>
+              <button class="mini danger-mini student-del-btn" data-name="${escapeHtml(name)}" type="button">삭제</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </table>`}
+    </div>
+
+    <div class="card">
+      <h2>학생별 결과</h2>
+      <div class="tabs">
+        <div class="tab ${resultsTab==='all'?'active':''}" id="resultsTabAll">전체 목록</div>
+        <div class="tab ${resultsTab==='search'?'active':''}" id="resultsTabSearch">과목·단원 검색</div>
+      </div>
+      ${resultsTab==='search' ? `
+        <div class="row2">
+          <div>
+            <label class="fl">과목</label>
+            <select id="filterSubjectSelect">
+              <option value="">전체 과목</option>
+              ${resultSubjects.map(s=>`<option value="${escapeHtml(s)}" ${s===filterSubject?'selected':''}>${escapeHtml(s)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="fl">단원</label>
+            <select id="filterUnitSelect" ${!filterSubject?'disabled':''}>
+              <option value="">전체 단원</option>
+              ${resultUnits.map(u=>`<option value="${escapeHtml(u)}" ${u===filterUnit?'selected':''}>${escapeHtml(u)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      ` : ''}
+      ${filteredResults.length === 0 ? '<div class="empty">해당 결과가 없습니다</div>' : `
+      <table>
+        <tr><th>이름</th><th>날짜</th><th>과목</th><th>단원</th><th>점수</th><th>정답률</th></tr>
+        ${(state.resultsExpanded ? filteredResults.slice(0,150) : filteredResults.slice(0,5)).map((r,idx)=>`
+          <tr>
+            <td><span class="name-link" data-idx="${idx}">${escapeHtml(r.name)}</span></td>
+            <td>${r.date}</td>
+            <td>${escapeHtml(r.subject||'-')}</td>
+            <td>${escapeHtml(r.unit||'-')}</td>
+            <td>${r.correct}/${r.total}</td>
+            <td>${Math.round(r.correct/r.total*100)}%</td>
+          </tr>`).join('')}
+      </table>
+      ${filteredResults.length > 5 ? `<button class="secondary mini" id="resultsExpandBtn" type="button">${state.resultsExpanded ? '접기' : `상세보기 (전체 ${filteredResults.length}건)`}</button>` : ''}
+      `}
+    </div>
+
+    <div class="card">
+      <h2>문제 업로드 (${bank.length}문항 등록됨)</h2>
+      <div class="hint">
+        ① 과목 선택 → ② 단원 선택 → ③ JSON 파일 업로드 순서로 진행하세요.<br>
+        파일 형식: [{"text":"이차함수 $y=x^2+2x+a$의...","choices":["...","...","...","...","..."],"answer":0,"image":"(선택) 이미지 URL 또는 data:image/png;base64,... "}, ...]<br>
+        image는 선택 항목입니다 — 그래프처럼 그림이 필요한 문제만 넣으면 됩니다.<br>
+        수식은 $...$로 감싸면 LaTeX로 렌더링됩니다. answer는 정답 인덱스(0부터, 0=①).
+      </div>
+
+      <label class="fl">① 과목명</label>
+      <select id="subjectSelect">
+        ${subjectNames.map(s=>`<option value="${escapeHtml(s)}" ${s===uploadSubject?'selected':''}>${escapeHtml(s)} (${subjectCountsFromBank[s]||0}문항)</option>`).join('')}
+        <option value="__new__">+ 새 과목 추가</option>
+      </select>
+      <div id="newSubjectBox" style="display:none;">
+        <input id="newSubjectInput" placeholder="새 과목명 입력" />
+        <button class="secondary" id="createSubjectOnlyBtn" type="button">과목만 먼저 생성하기</button>
+      </div>
+      ${uploadSubject ? `<button class="danger" id="deleteSubjectBtn" type="button">"${escapeHtml(uploadSubject)}" 과목 전체 삭제</button>` : ''}
+
+      <hr class="divider">
+
+      <label class="fl">② 단원명</label>
+      <select id="unitSelect" ${!uploadSubject ? 'disabled' : ''}>
+        ${unitNames.map(u=>`<option value="${escapeHtml(u)}" ${u===uploadUnit?'selected':''}>${escapeHtml(u)} (${unitCountsFromBank[u]||0}문항)</option>`).join('')}
+        <option value="__new__" ${unitNames.length===0?'selected':''}>+ 새 단원 추가</option>
+      </select>
+      <div id="newUnitBox" style="display:${unitNames.length===0?'block':'none'};">
+        <input id="newUnitInput" placeholder="새 단원명 입력" />
+        <button class="secondary" id="createUnitOnlyBtn" type="button" ${!uploadSubject?'disabled':''}>단원만 먼저 생성하기</button>
+      </div>
+      ${uploadUnit ? `<button class="danger" id="deleteUnitBtn" type="button">"${escapeHtml(uploadUnit)}" 단원 삭제</button>` : ''}
+
+      <hr class="divider">
+
+      <label class="fl">③ 문제 JSON 파일</label>
+      <input id="fileInput" type="file" accept=".json,application/json" />
+      <div class="err" id="uploadErr" style="display:none;"></div>
+      <div class="ok" id="uploadOk" style="display:none;"></div>
+      <button class="primary" id="uploadBtn">파일 업로드</button>
+    </div>
+
+    <div class="card">
+      <h2>업로드 기록 (파일 단위 삭제)</h2>
+      <div class="hint">파일을 업로드할 때마다 하나의 묶음(배치)으로 기록됩니다. 잘못 올린 파일은 통째로 삭제할 수 있어요.</div>
+      ${renderBatchList(bank, state.batchExpanded)}
+    </div>
+
+    <div class="card">
+      <div class="card-toggle-header" id="orderMgmtHeader">
+        <h2 style="margin-bottom:0;">과목·단원 순서 관리</h2>
+        <span class="toggle-arrow">${state.orderMgmtOpen ? '▲' : '▼'}</span>
+      </div>
+      ${state.orderMgmtOpen ? `
+      <div class="hint">여기서 정한 순서대로 학생 화면과 선생님 목록에 표시됩니다. ▲▼ 버튼으로 순서를 바꾸면 바로 저장돼요.</div>
+      <label class="fl">과목 순서</label>
+      ${subjectNames.length === 0 ? '<div class="empty">과목이 없습니다</div>' : `
+      <table>
+        <tr><th>과목</th><th style="width:70px;"></th></tr>
+        ${subjectNames.map((s,i) => `
+          <tr>
+            <td>${escapeHtml(s)}</td>
+            <td>
+              <button class="mini order-subject-up" data-idx="${i}" type="button" ${i===0?'disabled':''}>▲</button>
+              <button class="mini order-subject-down" data-idx="${i}" type="button" ${i===subjectNames.length-1?'disabled':''}>▼</button>
+            </td>
+          </tr>`).join('')}
+      </table>`}
+      <hr class="divider">
+      <label class="fl">단원 순서 (과목 선택)</label>
+      <select id="orderSubjectSelect">
+        ${subjectNames.map(s=>`<option value="${escapeHtml(s)}" ${s===orderSubject?'selected':''}>${escapeHtml(s)}</option>`).join('')}
+      </select>
+      ${orderUnitNames.length === 0 ? '<div class="empty">단원이 없습니다</div>' : `
+      <table>
+        <tr><th>단원</th><th style="width:70px;"></th></tr>
+        ${orderUnitNames.map((u,i) => `
+          <tr>
+            <td>${escapeHtml(u)}</td>
+            <td>
+              <button class="mini order-unit-up" data-idx="${i}" type="button" ${i===0?'disabled':''}>▲</button>
+              <button class="mini order-unit-down" data-idx="${i}" type="button" ${i===orderUnitNames.length-1?'disabled':''}>▼</button>
+            </td>
+          </tr>`).join('')}
+      </table>`}
+      ` : ''}
+    </div>
+
+    <div class="card">
+      <h2>업로드된 문제 보기</h2>
+      <div class="row2">
+        <div>
+          <label class="fl">과목</label>
+          <select id="viewSubjectSelect">
+            ${subjectNames.filter(s=>subjectCountsFromBank[s]).map(s=>`<option value="${escapeHtml(s)}" ${s===viewSubject?'selected':''}>${escapeHtml(s)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="fl">단원</label>
+          <select id="viewUnitSelect">
+            <option value="">전체 단원</option>
+            ${viewUnitNames.map(u=>`<option value="${escapeHtml(u)}" ${u===viewUnit?'selected':''}>${escapeHtml(u)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      ${previewList.length === 0 ? '<div class="empty">해당 조건의 문제가 없습니다</div>' : `
+      <div class="preview-grid">
+        ${previewList.map((q,i)=> renderPreviewItem(q, i)).join('')}
+      </div>`}
+    </div>
+
+    <button class="secondary" id="clearBtn" style="color:#c23434;">문제은행 전체 초기화</button>
+    <button class="secondary" id="backBtn">학생 로그인으로</button>
+  `;
+
+  // ---- 전체 데이터 백업/복원 ----
+  document.getElementById('backupDownloadBtn').onclick = async () => {
+    const btn = document.getElementById('backupDownloadBtn');
+    btn.disabled = true; btn.textContent = '백업 만드는 중...';
+    try {
+      const backup = await buildFullBackup();
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ymd = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `quiz-app-backup-${ymd}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch(e) {
+      await showAlert('백업 파일을 만들지 못했습니다: ' + (e && e.message ? e.message : e));
+    } finally {
+      btn.disabled = false; btn.textContent = '백업 파일 다운로드';
+    }
+  };
+  document.getElementById('backupRestoreBtn').onclick = async () => {
+    const fileInput = document.getElementById('backupFileInput');
+    const errEl = document.getElementById('backupErr');
+    const okEl = document.getElementById('backupOk');
+    errEl.style.display = 'none'; okEl.style.display = 'none';
+    if (!fileInput.files.length) { errEl.textContent = '백업 파일을 선택해주세요.'; errEl.style.display = 'block'; return; }
+    try {
+      const text = await fileInput.files[0].text();
+      const data = JSON.parse(text);
+      if (data.backupType !== 'quiz-app-full-backup') {
+        errEl.textContent = '이 앱의 백업 파일이 아닙니다.';
+        errEl.style.display = 'block';
+        return;
+      }
+      const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+      if (pass === null) return;
+      if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+      if (!(await showConfirm('복원하면 현재 저장된 문제은행·과목/단원 순서가 백업 파일 내용으로 덮어써집니다. 계속할까요?'))) return;
+      const errors = await restoreFullBackup(data);
+      if (errors.length) {
+        errEl.textContent = '일부 항목 복원에 실패했습니다: ' + errors.join(', ');
+        errEl.style.display = 'block';
+      } else {
+        okEl.textContent = '복원이 완료되었습니다.';
+        okEl.style.display = 'block';
+      }
+      setTimeout(renderTeacher, 900);
+    } catch(e) {
+      errEl.textContent = '백업 파일을 읽을 수 없습니다: ' + (e && e.message ? e.message : e);
+      errEl.style.display = 'block';
+    }
+  };
+
+  // ---- 학생 계정 관리 ----
+  document.getElementById('addStudentBtn').onclick = async () => {
+    const nameEl = document.getElementById('newStudentName');
+    const passEl = document.getElementById('newStudentPass');
+    const errEl = document.getElementById('studentErr');
+    errEl.style.display = 'none';
+    const name = nameEl.value.trim();
+    const pass = passEl.value;
+    if (!name || !pass) {
+      errEl.textContent = '이름과 비밀번호를 모두 입력해주세요.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const existing = await getStudentAuth(name);
+    if (existing) {
+      errEl.textContent = '이미 존재하는 이름입니다. 다른 이름을 사용하거나 먼저 삭제해주세요.';
+      errEl.style.display = 'block';
+      return;
+    }
+    await setStudentAuth(name, pass);
+    renderTeacher();
+  };
+  document.querySelectorAll('.student-del-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const name = btn.dataset.name;
+      const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+      if (pass === null) return;
+      if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+      if (!(await showConfirm(`"${name}" 학생 계정을 삭제할까요? (기존 응시 기록은 남아있습니다)`))) return;
+      const ok = await deleteStudentAccount(name);
+      if (!ok) { await showAlert('삭제에 실패했습니다.'); return; }
+      if (studentNotes[name]) {
+        const notes = await loadStudentNotes();
+        delete notes[name];
+        await window.storage.set(STUDENT_NOTES_KEY, JSON.stringify(notes), true);
+      }
+      renderTeacher();
+    };
+  });
+  document.querySelectorAll('.student-edit-btn').forEach(btn => {
+    btn.onclick = () => {
+      state.editingStudentNote = btn.dataset.name;
+      renderTeacher();
+    };
+  });
+  const noteSaveBtn = document.getElementById('noteSaveBtn');
+  if (noteSaveBtn) noteSaveBtn.onclick = async () => {
+    const name = state.editingStudentNote;
+    const newPass = document.getElementById('notePassInput').value;
+    const school = document.getElementById('noteSchoolInput').value.trim();
+    const memo = document.getElementById('noteMemoInput').value.trim();
+    const errEl = document.getElementById('noteErr');
+    errEl.style.display = 'none';
+    if (newPass) {
+      if (newPass.length < 2) {
+        errEl.textContent = '비밀번호는 2자 이상 입력해주세요.';
+        errEl.style.display = 'block';
+        return;
+      }
+      const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+      if (pass === null) return;
+      if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+      await setStudentAuth(name, newPass);
+    }
+    const ok = await saveStudentNote(name, { school, memo });
+    if (!ok) { await showAlert('메모 저장에 실패했습니다.'); return; }
+    state.editingStudentNote = null;
+    renderTeacher();
+  };
+  const noteCancelBtn = document.getElementById('noteCancelBtn');
+  if (noteCancelBtn) noteCancelBtn.onclick = () => {
+    state.editingStudentNote = null;
+    renderTeacher();
+  };
+
+  // ---- 결과 탭/검색 이벤트 ----
+  document.getElementById('resultsTabAll').onclick = () => { state.resultsTab = 'all'; renderTeacher(); };
+  document.getElementById('resultsTabSearch').onclick = () => { state.resultsTab = 'search'; renderTeacher(); };
+  const filterSubjectSelect = document.getElementById('filterSubjectSelect');
+  if (filterSubjectSelect) filterSubjectSelect.onchange = (e) => {
+    state.filterSubject = e.target.value; state.filterUnit = ''; renderTeacher();
+  };
+  const filterUnitSelect = document.getElementById('filterUnitSelect');
+  if (filterUnitSelect) filterUnitSelect.onchange = (e) => {
+    state.filterUnit = e.target.value; renderTeacher();
+  };
+  document.querySelectorAll('.name-link').forEach(el2 => {
+    el2.onclick = () => {
+      const idx = parseInt(el2.dataset.idx);
+      state.detailRecord = filteredResults[idx];
+      state.view = 'studentDetail';
+      render();
+    };
+  });
+  const resultsExpandBtn = document.getElementById('resultsExpandBtn');
+  if (resultsExpandBtn) resultsExpandBtn.onclick = () => {
+    state.resultsExpanded = !state.resultsExpanded;
+    renderTeacher();
+  };
+
+  // ---- 과목 선택 이벤트 ----
+  const subjectSelect = document.getElementById('subjectSelect');
+  const newSubjectBox = document.getElementById('newSubjectBox');
+  const newSubjectInput = document.getElementById('newSubjectInput');
+  if (subjectSelect.value === '__new__') newSubjectBox.style.display = 'block';
+  subjectSelect.onchange = () => {
+    if (subjectSelect.value === '__new__') { newSubjectBox.style.display = 'block'; newSubjectInput.focus(); }
+    else { state.uploadSubject = subjectSelect.value; state.uploadUnit = null; renderTeacher(); }
+  };
+  document.getElementById('createSubjectOnlyBtn').onclick = async () => {
+    const name = newSubjectInput.value.trim();
+    if (!name) { await showAlert('과목명을 입력해주세요.'); return; }
+    const m = await loadMeta();
+    if (!m[name]) m[name] = [];
+    if (!m.__subjectOrder) m.__subjectOrder = getOrderedSubjects(bank, meta);
+    if (!m.__subjectOrder.includes(name)) m.__subjectOrder.push(name);
+    await saveMeta(m);
+    state.uploadSubject = name; state.uploadUnit = null;
+    renderTeacher();
+  };
+
+  // ---- 단원 선택 이벤트 ----
+  const unitSelect = document.getElementById('unitSelect');
+  const newUnitBox = document.getElementById('newUnitBox');
+  const newUnitInput = document.getElementById('newUnitInput');
+  unitSelect.onchange = () => {
+    if (unitSelect.value === '__new__') { newUnitBox.style.display = 'block'; newUnitInput.focus(); }
+    else { newUnitBox.style.display = 'none'; state.uploadUnit = unitSelect.value; }
+  };
+  const createUnitOnlyBtn = document.getElementById('createUnitOnlyBtn');
+  if (createUnitOnlyBtn) createUnitOnlyBtn.onclick = async () => {
+    const name = newUnitInput.value.trim();
+    if (!uploadSubject) { await showAlert('먼저 과목을 선택하거나 생성해주세요.'); return; }
+    if (!name) { await showAlert('단원명을 입력해주세요.'); return; }
+    const m = await loadMeta();
+    if (!m[uploadSubject]) m[uploadSubject] = [];
+    if (!m[uploadSubject].includes(name)) m[uploadSubject].push(name);
+    await saveMeta(m);
+    state.uploadUnit = name;
+    renderTeacher();
+  };
+
+  // ---- 과목/단원 삭제 ----
+  const deleteSubjectBtn = document.getElementById('deleteSubjectBtn');
+  if (deleteSubjectBtn) deleteSubjectBtn.onclick = async () => {
+    const target = uploadSubject;
+    const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+    if (pass === null) return;
+    if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+    if (!await showConfirm(`"${target}" 과목과 그 안의 모든 단원/문제를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+    try {
+      const newBank = bank.filter(q => (q.subject||'기타') !== target);
+      const ok = await saveBank(newBank, bank);
+      if (!ok) return;
+      const m = await loadMeta();
+      delete m[target];
+      if (m.__subjectOrder) m.__subjectOrder = m.__subjectOrder.filter(s => s !== target);
+      await saveMeta(m);
+      state.uploadSubject = null; state.uploadUnit = null; state.viewSubject = null; state.viewUnit = null; state.orderSubject = null;
+      renderTeacher();
+    } catch(e) {
+      await showAlert('삭제 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+    }
+  };
+  const deleteUnitBtn = document.getElementById('deleteUnitBtn');
+  if (deleteUnitBtn) deleteUnitBtn.onclick = async () => {
+    const targetSubject = uploadSubject, targetUnit = uploadUnit;
+    const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+    if (pass === null) return;
+    if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+    if (!await showConfirm(`"${targetSubject} > ${targetUnit}" 단원의 모든 문제를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+    try {
+      const newBank = bank.filter(q => !((q.subject||'기타')===targetSubject && (q.unit||'기타')===targetUnit));
+      const ok = await saveBank(newBank, bank);
+      if (!ok) return;
+      const m = await loadMeta();
+      if (m[targetSubject]) m[targetSubject] = m[targetSubject].filter(u => u !== targetUnit);
+      await saveMeta(m);
+      state.uploadUnit = null;
+      renderTeacher();
+    } catch(e) {
+      await showAlert('삭제 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+    }
+  };
+
+  // ---- 업로드 ----
+  document.getElementById('uploadBtn').onclick = async () => {
+    const errEl = document.getElementById('uploadErr');
+    const okEl = document.getElementById('uploadOk');
+    errEl.style.display = 'none'; okEl.style.display = 'none';
+
+    const subjectVal = (subjectSelect.value === '__new__') ? newSubjectInput.value.trim() : subjectSelect.value;
+    const unitVal = (unitSelect.value === '__new__') ? newUnitInput.value.trim() : unitSelect.value;
+    const fileInput = document.getElementById('fileInput');
+
+    if (!subjectVal || !unitVal) { errEl.textContent = '과목명과 단원명을 입력해주세요.'; errEl.style.display='block'; return; }
+    if (!fileInput.files.length) { errEl.textContent = '업로드할 JSON 파일을 선택해주세요.'; errEl.style.display='block'; return; }
+
+    try {
+      const text = await fileInput.files[0].text();
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) throw new Error('최상위는 배열([...])이어야 합니다.');
+      const maxId = bank.reduce((m,q)=>Math.max(m,q.id||0), 0);
+      const batchId = 'b' + Date.now();
+      const batchLabel = fileInput.files[0].name;
+      const withIds = parsed.map((q,i)=>({
+        id: maxId+i+1, subject: subjectVal, unit: unitVal,
+        text: q.text, choices: q.choices, answer: q.answer, image: q.image || null,
+        batchId, batchLabel, uploadedAt: Date.now()
+      }));
+      const result = await saveBank(bank.concat(withIds), bank);
+      if (!result) throw new Error('저장에 실패했습니다. 이 파일 하나의 용량이 너무 크면(특히 이미지가 많이 포함된 경우) 실패할 수 있습니다. 파일을 나눠서 다시 업로드해보세요.');
+      const m = await loadMeta();
+      if (!m.__subjectOrder) m.__subjectOrder = getOrderedSubjects(bank, meta);
+      if (!m.__subjectOrder.includes(subjectVal)) m.__subjectOrder.push(subjectVal);
+      if (!m[subjectVal]) m[subjectVal] = getOrderedUnits(bank, meta, subjectVal);
+      if (!m[subjectVal].includes(unitVal)) m[subjectVal].push(unitVal);
+      await saveMeta(m);
+      okEl.textContent = `${withIds.length}개 문제가 "${subjectVal} > ${unitVal}"에 추가되었습니다.`;
+      okEl.style.display = 'block';
+      state.uploadSubject = subjectVal; state.uploadUnit = unitVal;
+      state.viewSubject = subjectVal; state.viewUnit = unitVal;
+      setTimeout(renderTeacher, 900);
+    } catch(e) {
+      errEl.textContent = '파일을 처리할 수 없습니다: ' + e.message;
+      errEl.style.display = 'block';
+    }
+  };
+
+  // ---- 업로드 기록(배치) 펼치기/접기 ----
+  const batchExpandBtn = document.getElementById('batchExpandBtn');
+  if (batchExpandBtn) batchExpandBtn.onclick = () => {
+    state.batchExpanded = !state.batchExpanded;
+    renderTeacher();
+  };
+
+  // ---- 과목/단원 순서 관리 ----
+  const orderMgmtHeader = document.getElementById('orderMgmtHeader');
+  if (orderMgmtHeader) orderMgmtHeader.onclick = () => {
+    state.orderMgmtOpen = !state.orderMgmtOpen;
+    renderTeacher();
+  };
+  const orderSubjectSelect = document.getElementById('orderSubjectSelect');
+  if (orderSubjectSelect) orderSubjectSelect.onchange = (e) => {
+    state.orderSubject = e.target.value;
+    renderTeacher();
+  };
+  document.querySelectorAll('.order-subject-up, .order-subject-down').forEach(btn => {
+    btn.onclick = async () => {
+      const idx = parseInt(btn.dataset.idx);
+      const swapIdx = btn.classList.contains('order-subject-up') ? idx - 1 : idx + 1;
+      const arr = subjectNames.slice();
+      if (swapIdx < 0 || swapIdx >= arr.length) return;
+      [arr[idx], arr[swapIdx]] = [arr[swapIdx], arr[idx]];
+      const m = await loadMeta();
+      m.__subjectOrder = arr;
+      await saveMeta(m);
+      renderTeacher();
+    };
+  });
+  document.querySelectorAll('.order-unit-up, .order-unit-down').forEach(btn => {
+    btn.onclick = async () => {
+      const idx = parseInt(btn.dataset.idx);
+      const swapIdx = btn.classList.contains('order-unit-up') ? idx - 1 : idx + 1;
+      const arr = orderUnitNames.slice();
+      if (swapIdx < 0 || swapIdx >= arr.length) return;
+      [arr[idx], arr[swapIdx]] = [arr[swapIdx], arr[idx]];
+      const m = await loadMeta();
+      m[orderSubject] = arr;
+      await saveMeta(m);
+      renderTeacher();
+    };
+  });
+
+  // ---- 업로드 기록(배치) 삭제 ----
+  document.querySelectorAll('.batch-del-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const batchKey = btn.dataset.batchkey;
+      const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+      if (pass === null) return;
+      if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+      const count = bank.filter(q => batchKeyOf(q) === batchKey).length;
+      if (!await showConfirm(`이 파일로 업로드된 문제 ${count}개를 모두 삭제할까요? 되돌릴 수 없습니다.`)) return;
+      try {
+        const newBank = bank.filter(q => batchKeyOf(q) !== batchKey);
+        const ok = await saveBank(newBank, bank);
+        if (!ok) return;
+        renderTeacher();
+      } catch(e) {
+        await showAlert('삭제 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+      }
+    };
+  });
+
+  // ---- 미리보기 필터 ----
+  document.getElementById('viewSubjectSelect').onchange = (e) => {
+    state.viewSubject = e.target.value; state.viewUnit = null; state.editingQid = null; renderTeacher();
+  };
+  document.getElementById('viewUnitSelect').onchange = (e) => {
+    state.viewUnit = e.target.value; state.editingQid = null; renderTeacher();
+  };
+
+  // ---- 문제별 수정/삭제 ----
+  bindPreviewItemEvents(bank);
+
+  document.getElementById('clearBtn').onclick = async () => {
+    const pass = await showPrompt('선생님 비밀번호를 입력하세요', true);
+    if (pass === null) return;
+    if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
+    if (!await showConfirm('문제은행 전체를 초기화하고 예시 문제로 되돌릴까요?')) return;
+    try {
+      const ok1 = await saveBank(SEED_QUESTIONS, bank);
+      const ok2 = await saveMeta({});
+      if (!ok1 || !ok2) return;
+      state.uploadSubject = null; state.uploadUnit = null; state.viewSubject = null; state.viewUnit = null;
+      renderTeacher();
+    } catch(e) {
+      await showAlert('초기화 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+    }
+  };
+  document.getElementById('backBtn').onclick = () => { state = { view: 'login' }; render(); };
+  renderMath();
+}
+
+function batchKeyOf(q) {
+  return q.batchId || ('legacy:' + (q.subject||'') + ':' + (q.unit||''));
+}
+
+function renderBatchList(bank, expanded) {
+  const groups = {};
+  bank.forEach(q => {
+    const key = batchKeyOf(q);
+    if (!groups[key]) {
+      groups[key] = {
+        key,
+        label: q.batchLabel || '(파일 정보 없음 · 이전 데이터)',
+        subject: q.subject || '기타',
+        unit: q.unit || '기타',
+        uploadedAt: q.uploadedAt || null,
+        count: 0
+      };
+    }
+    groups[key].count++;
+  });
+  const list = Object.values(groups).sort((a,b) => (b.uploadedAt||0) - (a.uploadedAt||0));
+  if (list.length === 0) return '<div class="empty">업로드 기록이 없습니다</div>';
+  const shown = expanded ? list : list.slice(0, 5);
+  return `
+    <table>
+      <tr><th>파일</th><th>과목</th><th>단원</th><th>문항수</th><th>업로드 시각</th><th></th></tr>
+      ${shown.map(g => `
+        <tr>
+          <td>${escapeHtml(g.label)}</td>
+          <td>${escapeHtml(g.subject)}</td>
+          <td>${escapeHtml(g.unit)}</td>
+          <td>${g.count}</td>
+          <td>${g.uploadedAt ? fmtDateTime(g.uploadedAt) : '-'}</td>
+          <td><button class="mini danger-mini batch-del-btn" data-batchkey="${escapeHtml(g.key)}" type="button">삭제</button></td>
+        </tr>`).join('')}
+    </table>
+    ${list.length > 5 ? `<button class="secondary mini" id="batchExpandBtn" type="button">${expanded ? '접기' : `상세보기 (전체 ${list.length}건)`}</button>` : ''}
+  `;
+}
+
+function renderPreviewItem(q, i) {
+  const isEditing = state.editingQid === q.id;
+  if (!isEditing) {
+    return `
+      <div class="preview-item" data-qid="${q.id}">
+        <div class="phead">
+          <span class="pnum">${escapeHtml(q.unit||'')} · Q${i+1}</span>
+          <span class="phead-btns">
+            <button class="mini edit-btn" data-qid="${q.id}" type="button">수정하기</button>
+            <button class="mini danger-mini del-btn" data-qid="${q.id}" type="button">삭제하기</button>
+          </span>
+        </div>
+        <div class="ptext">${escapeHtml(q.text)}</div>
+        ${q.image ? `<img class="pimg" src="${q.image}" alt="문제 그림" />` : ''}
+        ${(q.choices||[]).map((c,ci)=>`
+          <div class="pchoice ${ci===q.answer?'pcorrect':''}">${['①','②','③','④','⑤'][ci]||(ci+1)} ${escapeHtml(c)} ${ci===q.answer?'✓':''}</div>
+        `).join('')}
+      </div>
+    `;
+  }
+  const draft = state.editDraft;
+  return `
+    <div class="preview-item" data-qid="${q.id}">
+      <div class="phead"><span class="pnum">${escapeHtml(q.unit||'')} · Q${i+1} (수정 중)</span></div>
+      <label class="fl">문제 내용</label>
+      <textarea id="editText">${escapeHtml(draft.text)}</textarea>
+      ${q.image ? `<img class="pimg" src="${q.image}" alt="문제 그림" /><div class="hint">그림은 그대로 유지됩니다 (그림 수정은 지원하지 않음).</div>` : ''}
+      <label class="fl">보기 (정답 라디오로 선택)</label>
+      ${draft.choices.map((c,ci)=>`
+        <div class="edit-choice-row">
+          <input type="radio" name="editAnswer" value="${ci}" ${draft.answer===ci?'checked':''}>
+          <input type="text" data-ci="${ci}" class="editChoice" value="${escapeHtml(c)}">
+        </div>
+      `).join('')}
+      <div class="row2">
+        <button class="primary" id="saveEditBtn" type="button">저장</button>
+        <button class="secondary" id="cancelEditBtn" type="button" style="margin-top:0;">취소</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindPreviewItemEvents(bank) {
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.onclick = () => {
+      const qid = parseInt(btn.dataset.qid);
+      const q = bank.find(x => x.id === qid);
+      if (!q) return;
+      state.editingQid = qid;
+      state.editDraft = { text: q.text, choices: [...q.choices], answer: q.answer };
+      renderTeacher();
+    };
+  });
+  document.querySelectorAll('.del-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const qid = parseInt(btn.dataset.qid);
+      if (!await showConfirm('이 문제를 삭제할까요?')) return;
+      try {
+        const newBank = bank.filter(q => q.id !== qid);
+        const ok = await saveBank(newBank, bank);
+        if (!ok) return;
+        renderTeacher();
+      } catch(e) {
+        await showAlert('삭제 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+      }
+    };
+  });
+  const saveEditBtn = document.getElementById('saveEditBtn');
+  if (saveEditBtn) saveEditBtn.onclick = async () => {
+    const text = document.getElementById('editText').value.trim();
+    const choiceInputs = document.querySelectorAll('.editChoice');
+    const choices = Array.from(choiceInputs).map(inp => inp.value.trim());
+    const answerRadio = document.querySelector('input[name="editAnswer"]:checked');
+    if (!text || choices.some(c => !c) || !answerRadio) {
+      await showAlert('문제 내용, 모든 보기, 정답을 모두 입력/선택해주세요.');
+      return;
+    }
+    const answer = parseInt(answerRadio.value);
+    const qid = state.editingQid;
+    try {
+      const newBank = bank.map(q => q.id === qid ? { ...q, text, choices, answer } : q);
+      const ok = await saveBank(newBank, bank);
+      if (!ok) return;
+      state.editingQid = null; state.editDraft = null;
+      renderTeacher();
+    } catch(e) {
+      await showAlert('저장 중 오류가 발생했습니다: ' + (e && e.message ? e.message : e));
+    }
+  };
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  if (cancelEditBtn) cancelEditBtn.onclick = () => {
+    state.editingQid = null; state.editDraft = null;
+    renderTeacher();
+  };
+}
+
+// ---------- teacher: student detail ----------
+function renderStudentDetail() {
+  const el = document.getElementById('app');
+  const r = state.detailRecord;
+  const pct = Math.round((r.correct / r.total) * 100);
+  const totalDur = r.startedAt ? Math.round((r.ts - r.startedAt)/1000) : null;
+
+  el.innerHTML = `
+    <div class="crumb">${escapeHtml(r.subject||'-')} · ${escapeHtml(r.unit||'-')}</div>
+    <h1>${escapeHtml(r.name)}님 결과 상세</h1>
+    <div class="sub">
+      응시일 ${fmtDateTime(r.ts)} · 점수 ${r.correct}/${r.total} (${pct}%) ${totalDur!==null?`· 총 소요시간 ${fmtDuration(totalDur)}`:''}
+    </div>
+    ${(r.detail||[]).map((d,i)=>`
+      <div class="card">
+        <div class="dq-meta">Q${i+1} · 푼 시각 ${fmtDateTime(d.answeredAt)} · 소요시간 ${fmtDuration(d.durationSec)}${d.picked==='unknown'?' · <span style="color:#c23434;">모르겠음으로 표시함</span>':''}</div>
+        <div class="qtext" style="font-size:15px;">${escapeHtml(d.text)}</div>
+        ${d.image ? `<img class="dimg" src="${d.image}" alt="문제 그림" />` : ''}
+        ${(d.choices||[]).map((c,ci)=>`
+          <div class="dchoice">
+            <span>${['①','②','③','④','⑤'][ci]||(ci+1)}</span>
+            <span class="${ci===d.answer?'d-answer-mark':''} ${ci===d.picked?'d-picked-mark':''}">${escapeHtml(c)}</span>
+            ${ci===d.picked?'<span>✓ 선택함</span>':''}
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}
+    <button class="secondary" id="backBtn">목록으로</button>
+  `;
+  document.getElementById('backBtn').onclick = () => { state.view = 'teacher'; render(); };
+}
+
+render();
+</script>
+</body>
+</html>
