@@ -85,6 +85,11 @@
   .stat .num { font-size: 22px; font-weight: 700; } .stat .lbl { font-size: 12px; color: #888; margin-top: 2px; }
   .hint { font-size: 12px; color: #999; margin-bottom: 10px; line-height: 1.6; }
   .empty { text-align: center; color: #999; padding: 40px 0; font-size: 14px; }
+  .loading-wrap { padding: 60px 20px; text-align: center; }
+  .loading-label { font-size: 14px; color: #57606A; margin-bottom: 14px; }
+  .loading-bar-track { width: 100%; max-width: 320px; height: 10px; background: #eee; border-radius: 6px; margin: 0 auto; overflow: hidden; }
+  .loading-bar-fill { height: 100%; width: 0%; background: #222; border-radius: 6px; transition: width 0.25s ease; }
+  .loading-pct { margin-top: 8px; font-size: 13px; color: #999; font-variant-numeric: tabular-nums; }
   .err { color: #c23434; font-size: 13px; margin: -4px 0 10px; }
   .ok { color: #0a7a3f; font-size: 13px; margin: -4px 0 10px; }
   .count-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
@@ -464,7 +469,7 @@ function groupByBatch(qs) {
 // 제한해서 처리하고(서버 과부하로 인한 일시적 오류 방지), 실패한 요청은 재시도합니다.
 // prevQs를 넘기지 않으면(예: 백업 복원처럼 저장소 상태를 신뢰할 수 없을 때) 저장소를
 // 직접 조회해서 안전하게 정리합니다.
-async function saveBank(qs, prevQs) {
+async function saveBank(qs, prevQs, onProgress) {
   try {
     const groups = groupByBatch(qs);
     const desiredKeys = Object.keys(groups);
@@ -492,6 +497,8 @@ async function saveBank(qs, prevQs) {
     // 쪽에서 오류가 나는 경우가 있어, 배치 하나씩 순서대로 간격을 두고 저장합니다.
     // (배치 1개만 바뀐 일반적인 업로드/삭제/수정은 이 루프가 한 번만 돌아서 느려지지 않습니다.)
     const writeResults = [];
+    if (onProgress) onProgress(0);
+    let writeDone = 0;
     for (const bk of batchesToWrite) {
       try {
         const r = await withRetry(() => window.storage.set(
@@ -502,6 +509,8 @@ async function saveBank(qs, prevQs) {
         console.error('배치 저장 실패:', bk, e);
         writeResults.push({ bk, ok: false, error: e });
       }
+      writeDone++;
+      if (onProgress) onProgress(Math.round(writeDone / (batchesToWrite.length || 1) * 100));
       if (batchesToWrite.length > 1) await new Promise(res => setTimeout(res, 350));
     }
     const failed = writeResults.filter(r => !r.ok);
@@ -609,49 +618,69 @@ async function loadAllResults() {
 // 코드를 고쳐서 새로 게시하면 저장소가 초기화되는 경우가 있어, 매번 과목·단원·학생 계정을
 // 다시 만들지 않도록 전체 데이터를 파일 하나로 내보내고, 새로 게시한 뒤 그 파일을 그대로
 // 불러와 복원할 수 있게 합니다.
-async function buildFullBackup() {
-  const [bank, meta, students, studentNotes, results, teacherAuth] = await Promise.all([
-    loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes(), loadAllResults(), getTeacherAuth()
-  ]);
+async function buildFullBackup(onProgress) {
+  const report = onProgress || (()=>{});
+  report(5);
+  const bank = await loadBank(); report(35);
+  const meta = await loadMeta(); report(40);
+  const students = await loadAllStudentAccounts(); report(45);
+  const studentNotes = await loadStudentNotes(); report(50);
+  const results = await loadAllResults(); report(70);
+  const teacherAuth = await getTeacherAuth(); report(72);
   const studentAuths = {};
   const authResults = await mapWithConcurrency(students, 6, name => getStudentAuth(name).then(a => [name, a]));
   authResults.forEach(([name, a]) => { if (a) studentAuths[name] = a.pin; });
+  report(100);
   return {
     backupType: 'quiz-app-full-backup', version: 1, exportedAt: new Date().toISOString(),
     bank, meta, studentAuths, studentNotes, results,
     teacherPass: teacherAuth ? teacherAuth.pass : null
   };
 }
-async function restoreFullBackup(data) {
+// 단계별 대략적인 비중: 문제은행 복원이 보통 가장 오래 걸려서 55%를 배정하고
+// 나머지 단계에 나눠 배정합니다. onProgress(0~100)로 진행률을 알려줍니다.
+async function restoreFullBackup(data, onProgress) {
+  const report = onProgress || (()=>{});
   const errors = [];
+  report(0);
   if (Array.isArray(data.bank)) {
-    const ok = await saveBank(data.bank);
+    const ok = await saveBank(data.bank, undefined, (p) => report(Math.round(p * 0.55)));
     if (!ok) errors.push('문제은행 복원 실패');
   }
+  report(55);
   if (data.meta && typeof data.meta === 'object') {
     const ok = await saveMeta(data.meta);
     if (!ok) errors.push('과목/단원 정보 복원 실패');
   }
+  report(60);
   if (data.studentAuths && typeof data.studentAuths === 'object') {
-    const results = await mapThrottled(Object.entries(data.studentAuths), 3, 300, ([name, pin]) =>
-      withRetry(() => setStudentAuth(name, pin)).then(()=>true).catch(()=>name)
+    const entries = Object.entries(data.studentAuths);
+    let done = 0;
+    const results = await mapThrottled(entries, 3, 300, ([name, pin]) =>
+      withRetry(() => setStudentAuth(name, pin)).then(()=>{ done++; report(60 + Math.round(done/(entries.length||1)*15)); return true; }).catch(()=>name)
     );
     results.filter(r => r !== true).forEach(name => errors.push(`학생 계정 복원 실패: ${name}`));
   }
+  report(75);
   if (data.studentNotes && typeof data.studentNotes === 'object') {
     try { await withRetry(() => window.storage.set(STUDENT_NOTES_KEY, JSON.stringify(data.studentNotes), true)); }
     catch(e) { errors.push('학생 메모 복원 실패'); }
   }
+  report(80);
   if (Array.isArray(data.results)) {
+    let done = 0;
+    const total = data.results.length || 1;
     const results = await mapThrottled(data.results, 3, 300, r => {
       const key = RESULTS_PREFIX + r.name + ':' + (r.ts || Date.now());
-      return withRetry(() => window.storage.set(key, JSON.stringify(r), true)).then(()=>true).catch(()=>false);
+      return withRetry(() => window.storage.set(key, JSON.stringify(r), true)).then(()=>{ done++; report(80 + Math.round(done/total*18)); return true; }).catch(()=>false);
     });
     if (results.some(ok => !ok)) errors.push('일부 응시 기록 복원 실패');
   }
+  report(98);
   if (data.teacherPass) {
     try { await setTeacherAuth(data.teacherPass); } catch(e) { errors.push('선생님 비밀번호 복원 실패'); }
   }
+  report(100);
   return errors;
 }
 
@@ -728,6 +757,56 @@ function fmtClock(sec) {
   const m = Math.floor(sec/60), s = sec%60;
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
+// ---------- 로딩 진행률 바 (0~100%) ----------
+function renderLoadingBar(el, label) {
+  el.innerHTML = `
+    <div class="loading-wrap">
+      <div class="loading-label">${escapeHtml(label)}</div>
+      <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBarFill" style="width:0%"></div></div>
+      <div class="loading-pct" id="loadingBarPct">0%</div>
+    </div>`;
+}
+function setLoadingProgress(pct) {
+  pct = Math.max(0, Math.min(100, Math.round(pct)));
+  const fill = document.getElementById('loadingBarFill');
+  const pctEl = document.getElementById('loadingBarPct');
+  if (fill) fill.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+}
+// 세부 단계로 나눌 수 없는 단일 작업(로그인 등)에 쓰는, 완료 전까지 서서히
+// 차오르다가 끝나면 100%로 마무리되는 진행률 표시입니다.
+// 여러 개의 비동기 작업을 진행률과 함께 병렬로 처리합니다. 하나가 끝날 때마다
+// (완료 개수 / 전체 개수)로 진행률을 갱신합니다.
+async function allWithProgress(promises, onProgress) {
+  let completed = 0;
+  const total = promises.length || 1;
+  onProgress(0);
+  return Promise.all(promises.map(p => Promise.resolve(p).then(r => {
+    completed++;
+    onProgress(Math.round(completed / total * 100));
+    return r;
+  })));
+}
+// 세부 단계로 나눌 수 없는 단일 작업(로그인 등)에 쓰는, 완료 전까지 서서히
+// 차오르다가 끝나면 100%로 마무리되는 진행률 표시입니다.
+async function withFakeProgress(promise, onProgress, capBeforeDone) {
+  capBeforeDone = capBeforeDone || 90;
+  let pct = 0;
+  onProgress(0);
+  const timer = setInterval(() => {
+    pct = Math.min(capBeforeDone, pct + Math.max(1, (capBeforeDone - pct) * 0.15));
+    onProgress(pct);
+  }, 150);
+  try {
+    const result = await promise;
+    clearInterval(timer);
+    onProgress(100);
+    return result;
+  } catch(e) {
+    clearInterval(timer);
+    throw e;
+  }
+}
 
 // ---------- router ----------
 // ---------- 뒤로가기(브라우저/앱 back) 버튼 처리 ----------
@@ -778,7 +857,13 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// 화면 전환 도중에 이전 화면의 비동기 로딩(예: 데이터 불러오기)이 뒤늦게 끝나면서
+// 이미 바뀐 새 화면을 덮어써버리는 것을 막기 위한 토큰입니다. render()가 호출될
+// 때마다 값이 올라가고, 각 비동기 렌더 함수는 await 이후에 이 값이 자신이 시작할
+// 때와 같은지 확인해서, 다르면(그 사이 다른 화면으로 넘어갔으면) 그리지 않습니다.
+let _renderToken = 0;
 function render() {
+  _renderToken++;
   if (state.view === 'login') renderLogin();
   else if (state.view === 'subjects') renderSubjects();
   else if (state.view === 'changePassword') renderChangePassword();
@@ -820,6 +905,10 @@ function renderLogin() {
       <label class="fl">비밀번호</label>
       <input id="pinInput" type="password" placeholder="비밀번호" />
       <div class="err" id="loginErr" style="display:none;"></div>
+      <div id="loginProgressWrap" style="display:none; margin: 10px 0;">
+        <div class="loading-bar-track"><div class="loading-bar-fill" id="loginBarFill" style="width:0%"></div></div>
+        <div class="loading-pct" id="loginBarPct">0%</div>
+      </div>
       <button class="primary" id="loginBtn">로그인</button>
       <button class="secondary" id="teacherBtn">선생님으로 접속</button>
     </div>
@@ -833,13 +922,23 @@ async function doLogin() {
   const name = document.getElementById('nameInput').value.trim();
   const pin = document.getElementById('pinInput').value;
   const errEl = document.getElementById('loginErr');
+  const progressWrap = document.getElementById('loginProgressWrap');
+  const fillEl = document.getElementById('loginBarFill');
+  const pctEl = document.getElementById('loginBarPct');
   errEl.style.display = 'none';
   if (!name || !pin) {
     errEl.textContent = '이름과 비밀번호를 입력해주세요.';
     errEl.style.display = 'block';
     return;
   }
-  const auth = await getStudentAuth(name);
+  progressWrap.style.display = 'block';
+  document.getElementById('loginBtn').disabled = true;
+  const auth = await withFakeProgress(getStudentAuth(name), (pct) => {
+    fillEl.style.width = pct + '%';
+    pctEl.textContent = Math.round(pct) + '%';
+  });
+  progressWrap.style.display = 'none';
+  document.getElementById('loginBtn').disabled = false;
   if (!auth) {
     errEl.textContent = '등록되지 않은 계정입니다. 선생님께 계정 생성을 요청하세요.';
     errEl.style.display = 'block';
@@ -856,9 +955,13 @@ async function doLogin() {
 
 // ---------- student: subject select ----------
 async function renderSubjects() {
+  const myToken = _renderToken;
   const el = document.getElementById('app');
-  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
-  const [bank, progress, meta] = await Promise.all([loadBank(), loadProgress(state.name), loadMeta()]);
+  renderLoadingBar(el, '불러오는 중...');
+  const [bank, progress, meta] = await allWithProgress(
+    [loadBank(), loadProgress(state.name), loadMeta()], setLoadingProgress
+  );
+  if (myToken !== _renderToken) return; // 그 사이 다른 화면으로 이동함 - 그리지 않음
   const subjects = groupCount(bank, q => q.subject || '기타');
   const names = getOrderedSubjects(bank, meta).filter(s => subjects[s]);
   el.innerHTML = `
@@ -947,10 +1050,11 @@ async function renderChangePassword() {
 
 // ---------- student: unit select ----------
 async function renderUnits() {
+  const myToken = _renderToken;
   const el = document.getElementById('app');
-  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
-  const bank = await loadBank();
-  const meta = await loadMeta();
+  renderLoadingBar(el, '불러오는 중...');
+  const [bank, meta] = await allWithProgress([loadBank(), loadMeta()], setLoadingProgress);
+  if (myToken !== _renderToken) return;
   const pool = bank.filter(q => (q.subject||'기타') === state.subject);
   const units = groupCount(pool, q => q.unit || '기타');
   const names = getOrderedUnits(bank, meta, state.subject).filter(u => units[u]);
@@ -1331,9 +1435,11 @@ function renderResult() {
 }
 
 async function renderMyResults() {
+  const myToken = _renderToken;
   const el = document.getElementById('app');
-  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
-  const all = await loadAllResults();
+  renderLoadingBar(el, '불러오는 중...');
+  const all = await withFakeProgress(loadAllResults(), setLoadingProgress);
+  if (myToken !== _renderToken) return;
   const mine = all.filter(r => r.name === state.name);
   el.innerHTML = `
     <h1>내 기록</h1>
@@ -1366,6 +1472,10 @@ function renderTeacherLogin() {
     <div class="card">
       <input id="passInput" type="password" placeholder="비밀번호" />
       <div class="err" id="teacherErr" style="display:none;"></div>
+      <div id="teacherLoginProgressWrap" style="display:none; margin: 10px 0;">
+        <div class="loading-bar-track"><div class="loading-bar-fill" id="teacherLoginBarFill" style="width:0%"></div></div>
+        <div class="loading-pct" id="teacherLoginBarPct">0%</div>
+      </div>
       <button class="primary" id="teacherLoginBtn">입장</button>
       <button class="secondary" id="backToLoginBtn">학생 로그인으로</button>
     </div>
@@ -1373,8 +1483,19 @@ function renderTeacherLogin() {
   document.getElementById('teacherLoginBtn').onclick = async () => {
     const pass = document.getElementById('passInput').value;
     const errEl = document.getElementById('teacherErr');
+    const progressWrap = document.getElementById('teacherLoginProgressWrap');
+    const fillEl = document.getElementById('teacherLoginBarFill');
+    const pctEl = document.getElementById('teacherLoginBarPct');
     if (!pass) { errEl.textContent = '비밀번호를 입력해주세요.'; errEl.style.display='block'; return; }
-    const auth = await getTeacherAuth();
+    errEl.style.display = 'none';
+    progressWrap.style.display = 'block';
+    document.getElementById('teacherLoginBtn').disabled = true;
+    const auth = await withFakeProgress(getTeacherAuth(), (pct) => {
+      fillEl.style.width = pct + '%';
+      pctEl.textContent = Math.round(pct) + '%';
+    });
+    progressWrap.style.display = 'none';
+    document.getElementById('teacherLoginBtn').disabled = false;
     if (!auth) { await setTeacherAuth(pass); }
     else if (auth.pass !== pass) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; errEl.style.display='block'; return; }
     state = { view: 'teacher' };
@@ -1385,9 +1506,13 @@ function renderTeacherLogin() {
 }
 
 async function renderTeacher() {
+  const myToken = _renderToken;
   const el = document.getElementById('app');
-  el.innerHTML = `<div class="empty">불러오는 중...</div>`;
-  const [results, bank, meta, students, studentNotes] = await Promise.all([loadAllResults(), loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes()]);
+  renderLoadingBar(el, '불러오는 중...');
+  const [results, bank, meta, students, studentNotes] = await allWithProgress(
+    [loadAllResults(), loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes()], setLoadingProgress
+  );
+  if (myToken !== _renderToken) return;
 
   const studentCount = new Set(results.map(r=>r.name)).size;
   const totalAttempts = results.length;
@@ -1455,10 +1580,18 @@ async function renderTeacher() {
       ${state.backupCardOpen !== false ? `
       <div class="hint">코드를 수정하고 새로 게시하면 저장된 데이터가 초기화될 수 있습니다. 게시 전에 여기서 백업 파일을 내려받고, 새로 게시한 뒤 그 파일을 불러오면 과목·단원·문제·학생 계정·응시 기록을 한 번에 복원할 수 있어요.</div>
       <button class="secondary" id="backupDownloadBtn" type="button">백업 파일 다운로드</button>
+      <div id="backupDownloadProgressWrap" style="display:none; margin: 10px 0;">
+        <div class="loading-bar-track"><div class="loading-bar-fill" id="backupDownloadBarFill" style="width:0%"></div></div>
+        <div class="loading-pct" id="backupDownloadBarPct">0%</div>
+      </div>
       <hr class="divider">
       <label class="fl">백업 파일 불러와서 복원하기</label>
       <input type="file" id="backupFileInput" accept="application/json" />
       <button class="primary" id="backupRestoreBtn" type="button">복원하기</button>
+      <div id="backupRestoreProgressWrap" style="display:none; margin: 10px 0;">
+        <div class="loading-bar-track"><div class="loading-bar-fill" id="backupRestoreBarFill" style="width:0%"></div></div>
+        <div class="loading-pct" id="backupRestoreBarPct">0%</div>
+      </div>
       <div class="err" id="backupErr" style="display:none;"></div>
       <div class="ok" id="backupOk" style="display:none;"></div>
       ` : ''}
@@ -1701,9 +1834,16 @@ async function renderTeacher() {
   const backupDownloadBtn = document.getElementById('backupDownloadBtn');
   if (backupDownloadBtn) backupDownloadBtn.onclick = async () => {
     const btn = document.getElementById('backupDownloadBtn');
-    btn.disabled = true; btn.textContent = '백업 만드는 중...';
+    const progressWrap = document.getElementById('backupDownloadProgressWrap');
+    const fillEl = document.getElementById('backupDownloadBarFill');
+    const pctEl = document.getElementById('backupDownloadBarPct');
+    btn.disabled = true;
+    progressWrap.style.display = 'block';
     try {
-      const backup = await buildFullBackup();
+      const backup = await buildFullBackup((pct) => {
+        fillEl.style.width = pct + '%';
+        pctEl.textContent = pct + '%';
+      });
       const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1717,7 +1857,8 @@ async function renderTeacher() {
     } catch(e) {
       await showAlert('백업 파일을 만들지 못했습니다: ' + (e && e.message ? e.message : e));
     } finally {
-      btn.disabled = false; btn.textContent = '백업 파일 다운로드';
+      btn.disabled = false;
+      progressWrap.style.display = 'none';
     }
   };
   const backupRestoreBtn = document.getElementById('backupRestoreBtn');
@@ -1725,6 +1866,9 @@ async function renderTeacher() {
     const fileInput = document.getElementById('backupFileInput');
     const errEl = document.getElementById('backupErr');
     const okEl = document.getElementById('backupOk');
+    const progressWrap = document.getElementById('backupRestoreProgressWrap');
+    const fillEl = document.getElementById('backupRestoreBarFill');
+    const pctEl = document.getElementById('backupRestoreBarPct');
     errEl.style.display = 'none'; okEl.style.display = 'none';
     if (!fileInput.files.length) { errEl.textContent = '백업 파일을 선택해주세요.'; errEl.style.display = 'block'; return; }
     try {
@@ -1739,7 +1883,14 @@ async function renderTeacher() {
       if (pass === null) return;
       if (!(await checkTeacherPass(pass))) { await showAlert('비밀번호가 일치하지 않습니다.'); return; }
       if (!(await showConfirm('복원하면 현재 저장된 문제은행·과목/단원 순서가 백업 파일 내용으로 덮어써집니다. 계속할까요?'))) return;
-      const errors = await restoreFullBackup(data);
+      backupRestoreBtn.disabled = true;
+      progressWrap.style.display = 'block';
+      const errors = await restoreFullBackup(data, (pct) => {
+        fillEl.style.width = pct + '%';
+        pctEl.textContent = pct + '%';
+      });
+      backupRestoreBtn.disabled = false;
+      progressWrap.style.display = 'none';
       if (errors.length) {
         errEl.textContent = '일부 항목 복원에 실패했습니다: ' + errors.join(', ');
         errEl.style.display = 'block';
@@ -1749,6 +1900,8 @@ async function renderTeacher() {
       }
       setTimeout(renderTeacher, 900);
     } catch(e) {
+      backupRestoreBtn.disabled = false;
+      progressWrap.style.display = 'none';
       errEl.textContent = '백업 파일을 읽을 수 없습니다: ' + (e && e.message ? e.message : e);
       errEl.style.display = 'block';
     }
