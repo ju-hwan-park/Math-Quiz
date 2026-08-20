@@ -561,8 +561,27 @@ async function getStudentAuth(name) {
   try { const r = await window.storage.get(STUDENT_AUTH_PREFIX + name, true); return r ? JSON.parse(r.value) : null; }
   catch(e) { return null; }
 }
+// pin을 바꿀 때 lastLoginAt 등 기존 필드가 사라지지 않도록 기존 값과 합쳐서 저장합니다.
 async function setStudentAuth(name, pin) {
-  await window.storage.set(STUDENT_AUTH_PREFIX + name, JSON.stringify({pin}), true);
+  let existing = null;
+  try { existing = await getStudentAuth(name); } catch(e) {}
+  await window.storage.set(STUDENT_AUTH_PREFIX + name, JSON.stringify({ ...(existing||{}), pin }), true);
+}
+// 학생이 로그인에 성공했을 때 마지막 로그인 시각을 기록합니다.
+async function recordStudentLogin(name) {
+  try {
+    const auth = await getStudentAuth(name);
+    if (!auth) return;
+    await window.storage.set(STUDENT_AUTH_PREFIX + name, JSON.stringify({ ...auth, lastLoginAt: Date.now() }), true);
+  } catch(e) { console.error('로그인 시각 기록 실패:', e); }
+}
+// 학생 계정 관리 화면에서 마지막 로그인 시각을 보여주기 위해 전체 학생의 인증 정보를 불러옵니다.
+async function loadAllStudentAuths() {
+  const names = await loadAllStudentAccounts();
+  const entries = await Promise.all(names.map(name => getStudentAuth(name).then(a => [name, a])));
+  const map = {};
+  entries.forEach(([name, a]) => { if (a) map[name] = a; });
+  return map;
 }
 async function loadAllStudentAccounts() {
   try {
@@ -826,7 +845,8 @@ const BACK_TARGETS = {
   myresults: 'subjects',
   'teacher-login': 'login',
   teacher: 'teacher-login',
-  studentDetail: 'teacher',
+  studentHistory: 'teacher',
+  studentDetail: 'studentHistory',
 };
 let _lastPushedView = null;
 let _suppressNextPop = false;
@@ -875,6 +895,7 @@ function render() {
   else if (state.view === 'myresults') renderMyResults();
   else if (state.view === 'teacher-login') renderTeacherLogin();
   else if (state.view === 'teacher') renderTeacher();
+  else if (state.view === 'studentHistory') renderStudentHistory();
   else if (state.view === 'studentDetail') renderStudentDetail();
   renderMath();
   manageStopwatch();
@@ -949,6 +970,7 @@ async function doLogin() {
     errEl.style.display = 'block';
     return;
   }
+  recordStudentLogin(name); // 화면 전환을 기다리게 하지 않도록 완료를 기다리지 않음
   state = { view: 'subjects', name };
   render();
 }
@@ -1320,6 +1342,34 @@ function renderQuiz() {
       questions: state.questions, current: state.current, picks: state.picks,
       qStart: state.qStart, qAnsweredAt: state.qAnsweredAt, swElapsed: state.swElapsed||0
     });
+
+    // 선생님이 학생별 결과에서 볼 수 있도록, 지금까지 푼 만큼을 기준으로 진행중
+    // 결과도 함께 저장합니다. (기존에는 끝까지 풀어야만 결과가 보였습니다.)
+    let correctCount = 0;
+    let answeredCount = 0;
+    const starts = Object.values(state.qStart).filter(Boolean);
+    const startedAt = starts.length ? Math.min(...starts) : Date.now();
+    const detail = state.questions.map(q => {
+      const picked = state.picks[q.id];
+      if (picked !== undefined) answeredCount++;
+      const isCorrect = picked === q.answer;
+      if (isCorrect) correctCount++;
+      const qStart = state.qStart[q.id] || null;
+      const answeredAt = state.qAnsweredAt[q.id] || null;
+      const durationSec = (qStart && answeredAt) ? Math.round((answeredAt - qStart)/1000) : null;
+      return {
+        id: q.id, text: q.text, choices: q.choices, image: q.image || null,
+        picked, answer: q.answer, correct: isCorrect,
+        answeredAt, durationSec
+      };
+    });
+    const record = {
+      name: state.name, subject: state.subject, unit: state.unit, ts: Date.now(), startedAt,
+      date: new Date().toISOString().slice(0,10), total: state.questions.length, correct: correctCount,
+      detail, inProgress: true, answeredCount
+    };
+    await saveResult(state.name, record);
+
     const msg = document.getElementById('saveMsg');
     msg.textContent = '저장되었습니다. 잠시 후 이동합니다...';
     msg.style.display = 'block';
@@ -1509,8 +1559,8 @@ async function renderTeacher() {
   const myToken = _renderToken;
   const el = document.getElementById('app');
   renderLoadingBar(el, '불러오는 중...');
-  const [results, bank, meta, students, studentNotes] = await allWithProgress(
-    [loadAllResults(), loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes()], setLoadingProgress
+  const [results, bank, meta, students, studentNotes, studentAuths] = await allWithProgress(
+    [loadAllResults(), loadBank(), loadMeta(), loadAllStudentAccounts(), loadStudentNotes(), loadAllStudentAuths()], setLoadingProgress
   );
   if (myToken !== _renderToken) return;
 
@@ -1614,13 +1664,14 @@ async function renderTeacher() {
       <hr class="divider">
       ${students.length === 0 ? '<div class="empty">등록된 학생 계정이 없습니다</div>' : `
       <table>
-        <tr><th>이름</th><th>학교</th><th>비고</th><th style="width:110px;"></th></tr>
+        <tr><th>이름</th><th>마지막 로그인</th><th>학교</th><th>비고</th><th style="width:110px;"></th></tr>
         ${students.map(name => {
           const note = studentNotes[name] || {};
+          const auth = studentAuths[name] || {};
           if (state.editingStudentNote === name) {
             return `
               <tr>
-                <td colspan="4">
+                <td colspan="5">
                   <div style="font-weight:600;margin-bottom:6px;">${escapeHtml(name)}</div>
                   <label class="fl">새 비밀번호 (변경할 때만 입력)</label>
                   <input id="notePassInput" type="password" placeholder="비워두면 비밀번호는 그대로 유지됩니다" />
@@ -1639,6 +1690,7 @@ async function renderTeacher() {
           return `
           <tr>
             <td>${escapeHtml(name)}</td>
+            <td>${auth.lastLoginAt ? fmtDateShort(auth.lastLoginAt) : '-'}</td>
             <td>${escapeHtml(note.school||'-')}</td>
             <td>${escapeHtml(note.memo||'-')}</td>
             <td>
@@ -1689,8 +1741,8 @@ async function renderTeacher() {
             <td>${r.startedAt ? fmtDuration((r.ts - r.startedAt)/1000) : '-'}</td>
             <td>${escapeHtml(r.subject||'-')}</td>
             <td>${escapeHtml(r.unit||'-')}</td>
-            <td>${r.correct}/${r.total}</td>
-            <td>${Math.round(r.correct/r.total*100)}%</td>
+            <td>${r.inProgress ? `${r.answeredCount||0}/${r.total} <span style="color:#c23434;">진행중</span>` : `${r.correct}/${r.total}`}</td>
+            <td>${r.inProgress ? '-' : Math.round(r.correct/r.total*100)+'%'}</td>
           </tr>`).join('')}
       </table>
       ${filteredResults.length > 5 ? `<button class="secondary mini" id="resultsExpandBtn" type="button">${state.resultsExpanded ? '접기' : `상세보기 (전체 ${filteredResults.length}건)`}</button>` : ''}
@@ -1999,8 +2051,10 @@ async function renderTeacher() {
   document.querySelectorAll('.name-link').forEach(el2 => {
     el2.onclick = () => {
       const idx = parseInt(el2.dataset.idx);
-      state.detailRecord = filteredResults[idx];
-      state.view = 'studentDetail';
+      const name = filteredResults[idx].name;
+      state.detailStudentName = name;
+      state.studentHistoryList = results.filter(rec => rec.name === name); // results는 이미 최신순 정렬됨
+      state.view = 'studentHistory';
       render();
     };
   });
@@ -2404,6 +2458,41 @@ function bindPreviewItemEvents(bank) {
 }
 
 // ---------- teacher: student detail ----------
+// ---------- teacher: 학생 한 명의 전체 응시 기록 목록 ----------
+function renderStudentHistory() {
+  const el = document.getElementById('app');
+  const name = state.detailStudentName;
+  const list = state.studentHistoryList || [];
+  el.innerHTML = `
+    <div class="crumb">학생별 결과</div>
+    <h1>${escapeHtml(name)}님의 응시 기록</h1>
+    <div class="sub">총 ${list.length}건 · 최신순</div>
+    ${list.length === 0 ? '<div class="empty">기록이 없습니다</div>' : `
+    <table>
+      <tr><th>날짜</th><th>소요시간</th><th>과목</th><th>단원</th><th>점수</th><th>정답률</th><th></th></tr>
+      ${list.map((r,idx) => `
+        <tr>
+          <td>${fmtDateShort(r.ts)}</td>
+          <td>${r.startedAt ? fmtDuration((r.ts - r.startedAt)/1000) : '-'}</td>
+          <td>${escapeHtml(r.subject||'-')}</td>
+          <td>${escapeHtml(r.unit||'-')}</td>
+          <td>${r.inProgress ? `${r.answeredCount||0}/${r.total} <span style="color:#c23434;">진행중</span>` : `${r.correct}/${r.total}`}</td>
+          <td>${r.inProgress ? '-' : Math.round(r.correct/r.total*100)+'%'}</td>
+          <td><button class="mini history-detail-btn" data-idx="${idx}" type="button">상세보기</button></td>
+        </tr>`).join('')}
+    </table>`}
+    <button class="secondary" id="backBtn">학생별 결과로</button>
+  `;
+  el.querySelectorAll('.history-detail-btn').forEach(btn => {
+    btn.onclick = () => {
+      state.detailRecord = list[parseInt(btn.dataset.idx)];
+      state.view = 'studentDetail';
+      render();
+    };
+  });
+  document.getElementById('backBtn').onclick = () => { state.view = 'teacher'; render(); };
+}
+
 function renderStudentDetail() {
   const el = document.getElementById('app');
   const r = state.detailRecord;
@@ -2412,9 +2501,9 @@ function renderStudentDetail() {
 
   el.innerHTML = `
     <div class="crumb">${escapeHtml(r.subject||'-')} · ${escapeHtml(r.unit||'-')}</div>
-    <h1>${escapeHtml(r.name)}님 결과 상세</h1>
+    <h1>${escapeHtml(r.name)}님 결과 상세${r.inProgress ? ' · <span style="color:#c23434;">진행중</span>' : ''}</h1>
     <div class="sub">
-      응시일 ${fmtDateTime(r.ts)} · 점수 ${r.correct}/${r.total} (${pct}%) ${totalDur!==null?`· 총 소요시간 ${fmtDuration(totalDur)}`:''}
+      응시일 ${fmtDateTime(r.ts)} · ${r.inProgress ? `지금까지 ${r.answeredCount||0}/${r.total}문제 풀이 (정답 ${r.correct}개)` : `점수 ${r.correct}/${r.total} (${pct}%)`} ${totalDur!==null?`· 소요시간 ${fmtDuration(totalDur)}`:''}
     </div>
     ${(r.detail||[]).map((d,i)=>`
       <div class="card">
@@ -2432,7 +2521,7 @@ function renderStudentDetail() {
     `).join('')}
     <button class="secondary" id="backBtn">목록으로</button>
   `;
-  document.getElementById('backBtn').onclick = () => { state.view = 'teacher'; render(); };
+  document.getElementById('backBtn').onclick = () => { state.view = 'studentHistory'; render(); };
 }
 
 render();
